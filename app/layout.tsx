@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from 'sonner';
+import { ThemeProvider, themeBootstrapScript } from '../src/providers/theme-provider';
 
 export const metadata: Metadata = {
   title: 'Proto-2',
@@ -16,9 +17,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-gray-50 text-gray-900 antialiased">
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+      </head>
+      <body className="antialiased" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+        <ThemeProvider>{children}</ThemeProvider>
         <Toaster position="top-center" richColors closeButton />
       </body>
     </html>
