@@ -61,9 +61,9 @@ export interface ThemeState {
 }
 
 const DEFAULT_THEME: ThemeState = {
-  primary: 'violet',
+  primary: 'slate',
   primaryHex: null,
-  palette: 'default',
+  palette: 'monochrome',
 };
 
 const STORAGE_KEY = 'proto2.theme';
@@ -161,7 +161,7 @@ export function ThemeProvider({ initial, children }: ProviderProps) {
     [state, setPrimary, setPrimaryHex, setPalette, reset]
   );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
 export function useTheme(): ThemeContextValue {
