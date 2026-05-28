@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { StatusBadge } from '../../../src/components/admin/StatusBadge';
-import { ArrowUpRight, ArrowDownRight, Search, Filter } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Transaction {
@@ -25,12 +25,17 @@ const mockTransactions: Transaction[] = [
   { id: 'tx_006', date: '2026-05-25', avatar: 'CL', name: 'Client: Vertex Labs', description: 'Retainer Q2', amount: 8500, type: 'income', status: 'reconciled' },
   { id: 'tx_007', date: '2026-05-24', avatar: 'AP', name: 'Apple', description: 'iCloud storage', amount: -99, type: 'expense', status: 'posted' },
   { id: 'tx_008', date: '2026-05-24', avatar: 'TW', name: 'Twilio', description: 'SMS & voice API', amount: -320, type: 'expense', status: 'failed' },
+  // ... (more rows for demo pagination)
+  { id: 'tx_009', date: '2026-05-23', avatar: 'MS', name: 'Microsoft', description: 'Azure subscription', amount: -299, type: 'expense', status: 'posted' },
+  { id: 'tx_010', date: '2026-05-23', avatar: 'SL', name: 'Slack', description: 'Team plan', amount: -150, type: 'expense', status: 'posted' },
 ];
 
 export default function BankTransactionsPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [transactions] = useState<Transaction[]>(mockTransactions);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense' | 'pending'>('all');
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 50;
 
   const filtered = transactions
     .filter(t => {
@@ -44,13 +49,21 @@ export default function BankTransactionsPage() {
       t.description.toLowerCase().includes(search.toLowerCase())
     );
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginated = filtered.slice(startIndex, startIndex + pageSize);
+
   const totalIncome = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const totalExpense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   const handleCategorize = (id: string) => {
     toast.success('Transaction categorized (demo)');
-    // Future: open COSS Sheet with category picker
   };
+
+  // Reset page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, search]);
 
   return (
     <div className="space-y-6">
@@ -67,7 +80,6 @@ export default function BankTransactionsPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="card p-5">
           <div className="text-xs text-[var(--muted-foreground)]">Net for period</div>
@@ -90,7 +102,6 @@ export default function BankTransactionsPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col md:flex-row gap-3 items-center">
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 absolute left-4 top-3.5 text-[var(--muted-foreground)]" />
@@ -115,7 +126,6 @@ export default function BankTransactionsPage() {
         </div>
       </div>
 
-      {/* Card-style Table */}
       <div className="card overflow-hidden">
         <table className="table">
           <thead>
@@ -129,10 +139,10 @@ export default function BankTransactionsPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 && (
+            {paginated.length === 0 && (
               <tr><td colSpan={6} className="p-12 text-center text-[var(--muted-foreground)]">No transactions match your filters.</td></tr>
             )}
-            {filtered.map((tx) => (
+            {paginated.map((tx) => (
               <tr key={tx.id} className="hover:bg-[var(--muted)]/50 group cursor-pointer" onClick={() => toast.info(`Opened ${tx.name} details (demo)`)}>
                 <td className="font-mono text-sm text-[var(--muted-foreground)]">
                   {new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -169,8 +179,32 @@ export default function BankTransactionsPage() {
         </table>
       </div>
 
+      {/* Pagination */}
+      <div className="flex items-center justify-between text-sm">
+        <div className="text-[var(--muted-foreground)]">
+          Showing {startIndex + 1}–{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="btn btn-secondary px-3 py-1 disabled:opacity-50"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="px-3 text-[var(--muted-foreground)]">Page {currentPage} of {totalPages}</span>
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="btn btn-secondary px-3 py-1 disabled:opacity-50"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
       <div className="text-xs text-[var(--muted-foreground)]">
-        Showing {filtered.length} of {transactions.length} transactions • COSS UI table variant • Agent auto-categorized 94%
+        COSS UI table variant • Agent auto-categorized 94% • Default 50 rows per page
       </div>
     </div>
   );
