@@ -30,11 +30,11 @@
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
 
-  /* Default main color (violet). Overridden by [data-primary] below. */
-  --primary: #7c3aed;
+  /* Default main color (slate/black as requested for no purple flash). Overridden by [data-primary] below. */
+  --primary: #0f172a;
   --primary-foreground: #ffffff;
-  --primary-soft: #ede9fe;
-  --ring: #7c3aed;
+  --primary-soft: #e2e8f0;
+  --ring: #0f172a;
 }
 
 /* =========================================================================
@@ -43,12 +43,17 @@
  * Soft tone is for hover/active sidebar pill backgrounds.
  * ========================================================================= */
 
-html[data-primary='violet'],
-html:not([data-primary]) {
+html[data-primary='violet'] {
   --primary: #7c3aed;
   --primary-foreground: #ffffff;
   --primary-soft: #ede9fe;
   --ring: #7c3aed;
+}
+html:not([data-primary]) {
+  --primary: #0f172a;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e2e8f0;
+  --ring: #0f172a;
 }
 html[data-primary='indigo'] {
   --primary: #4f46e5;
@@ -268,7 +273,7 @@ body {
   white-space: nowrap;
 }
 .pill[data-tone='neutral'] { background: var(--pill-neutral-bg); color: var(--pill-neutral-fg); border-color: var(--pill-neutral-border); }
-.pill[data-tone='info']    { background: var(--pill-info-bg);    color: var(--pill-info-fg);    border-color: var(--pill-info-border); }
+.pill[data-tone='info']    { background: var(--pill-info-bg); color: var(--pill-info-fg); border-color: var(--pill-info-border); }
 .pill[data-tone='success'] { background: var(--pill-success-bg); color: var(--pill-success-fg); border-color: var(--pill-success-border); }
 .pill[data-tone='warning'] { background: var(--pill-warning-bg); color: var(--pill-warning-fg); border-color: var(--pill-warning-border); }
 .pill[data-tone='danger']  { background: var(--pill-danger-bg);  color: var(--pill-danger-fg);  border-color: var(--pill-danger-border); }
