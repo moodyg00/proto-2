@@ -33,13 +33,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-gray-500 mt-1">Welcome back. This is the complete application layer.</p>
       </div>
 
-      {/* Quick stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Open Tasks', value: '14', icon: CheckSquare, href: '/admin/tasks' },
@@ -62,7 +60,6 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      {/* Primary action: Tasks + Ask Agent */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 card p-6">
           <div className="flex items-center justify-between mb-4">
@@ -120,7 +117,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Module quick links */}
       <div>
         <div className="text-sm font-medium text-gray-500 mb-3 px-1">Jump to modules</div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
