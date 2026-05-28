@@ -12,23 +12,31 @@ export default function AdminDashboard() {
     { label: 'Agents Active', value: '3', icon: Brain, href: '/admin/ai' },
     { label: 'Tasks Today', value: '9', icon: CheckCircle, href: '/admin/tasks' },
   ];
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>Welcome back. High-level overview.</p>
+        <p className="text-muted-foreground">Welcome back. This is the complete application layer.</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* KPI Cards - 2x2 on mobile, 3x2 on larger */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {kpis.map((kpi, i) => {
           const Icon = kpi.icon;
           return (
-            <Link key={i} href={kpi.href} className="stat-card p-4 block hover:border-[var(--primary)] transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[var(--primary-soft)] rounded-lg text-[var(--primary)]"><Icon className="w-5 h-5" /></div>
-                <div>
-                  <div className="text-2xl font-semibold">{kpi.value}</div>
-                  <div className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{kpi.label}</div>
+            <Link 
+              key={i} 
+              href={kpi.href} 
+              className="stat-card group p-6 block hover:shadow-md transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-[var(--primary-soft)] text-[var(--primary)] rounded-xl flex-shrink-0">
+                  <Icon className="w-6 h-6" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-3xl font-semibold text-foreground">{kpi.value}</div>
+                  <div className="text-sm text-muted-foreground mt-1">{kpi.label}</div>
                 </div>
               </div>
             </Link>
@@ -36,18 +44,26 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 card p-6">
-          <div className="font-semibold mb-4 flex items-center gap-2"><CheckSquare className="w-5 h-5" /> Recent Tasks</div>
-          <div className="text-sm" style={{ color: 'var(--muted-foreground)' }}>No tasks yet. Demo mode active.</div>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card p-6">
-          <div className="font-semibold mb-4 flex items-center gap-2"><Brain className="w-5 h-5" /> Agent Status</div>
-          <div className="text-sm" style={{ color: 'var(--muted-foreground)' }}>3 agents running. All systems nominal.</div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="font-semibold flex items-center gap-2">
+              <CheckSquare className="w-5 h-5 text-[var(--primary)]" />
+              Recent Tasks
+            </div>
+            <Link href="/admin/tasks" className="text-sm text-[var(--primary)] hover:underline">View all →</Link>
+          </div>
+          <p className="text-muted-foreground text-sm">No tasks yet. Demo mode active.</p>
+        </div>
+
+        <div className="card p-6">
+          <div className="font-semibold flex items-center gap-2 mb-4">
+            <Brain className="w-5 h-5 text-[var(--primary)]" />
+            Agent Interface
+          </div>
+          <p className="text-muted-foreground text-sm">Agents act as department heads...</p>
         </div>
       </div>
-
-      <div className="text-xs" style={{ color: 'var(--muted-foreground)' }}>Proto-2 • Phase 1 Lightweight Admin</div>
     </div>
   );
 }
