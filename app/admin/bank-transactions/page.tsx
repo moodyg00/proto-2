@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { StatusBadge } from '../../../src/components/admin/StatusBadge';
-import { ArrowUpRight, ArrowDownRight, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Transaction {
@@ -25,9 +25,6 @@ const mockTransactions: Transaction[] = [
   { id: 'tx_006', date: '2026-05-25', avatar: 'CL', name: 'Client: Vertex Labs', description: 'Retainer Q2', amount: 8500, type: 'income', status: 'reconciled' },
   { id: 'tx_007', date: '2026-05-24', avatar: 'AP', name: 'Apple', description: 'iCloud storage', amount: -99, type: 'expense', status: 'posted' },
   { id: 'tx_008', date: '2026-05-24', avatar: 'TW', name: 'Twilio', description: 'SMS & voice API', amount: -320, type: 'expense', status: 'failed' },
-  // ... (more rows for demo pagination)
-  { id: 'tx_009', date: '2026-05-23', avatar: 'MS', name: 'Microsoft', description: 'Azure subscription', amount: -299, type: 'expense', status: 'posted' },
-  { id: 'tx_010', date: '2026-05-23', avatar: 'SL', name: 'Slack', description: 'Team plan', amount: -150, type: 'expense', status: 'posted' },
 ];
 
 export default function BankTransactionsPage() {
@@ -60,19 +57,14 @@ export default function BankTransactionsPage() {
     toast.success('Transaction categorized (demo)');
   };
 
-  // Reset page when filters change
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [filter, search]);
+  React.useEffect(() => { setCurrentPage(1); }, [filter, search]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Bank Transactions</h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            All records • Auto-categorized by Agent • Reconcile in one click
-          </p>
+          <p className="text-sm text-[var(--muted-foreground)] mt-1">All records • COSS UI CardFrame</p>
         </div>
         <div className="flex gap-3">
           <button onClick={() => toast('Export CSV (demo)')} className="btn btn-secondary">Export</button>
@@ -105,28 +97,22 @@ export default function BankTransactionsPage() {
       <div className="flex flex-col md:flex-row gap-3 items-center">
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 absolute left-4 top-3.5 text-[var(--muted-foreground)]" />
-          <input
-            type="text"
-            placeholder="Search transactions or counterparties..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input pl-11"
-          />
+          <input type="text" placeholder="Search transactions or counterparties..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-11" />
         </div>
         <div className="flex gap-2">
           {(['all', 'income', 'expense', 'pending'] as const).map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`btn text-sm ${filter === f ? 'btn-primary' : 'btn-secondary'}`}
-            >
-              {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
+            <button key={f} onClick={() => setFilter(f)} className={`btn text-sm ${filter === f ? 'btn-primary' : 'btn-secondary'}`}>{f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}</button>
           ))}
         </div>
       </div>
 
-      <div className="card overflow-hidden">
+      {/* COSS UI CardFrame with card-style table */}
+      <div className="card p-0 overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b">
+          <div className="font-semibold">All Records</div>
+          <div className="text-xs text-[var(--muted-foreground)]">{filtered.length} transactions</div>
+        </div>
+
         <table className="table">
           <thead>
             <tr>
@@ -139,73 +125,34 @@ export default function BankTransactionsPage() {
             </tr>
           </thead>
           <tbody>
-            {paginated.length === 0 && (
-              <tr><td colSpan={6} className="p-12 text-center text-[var(--muted-foreground)]">No transactions match your filters.</td></tr>
-            )}
+            {paginated.length === 0 && <tr><td colSpan={6} className="p-12 text-center text-[var(--muted-foreground)]">No transactions match your filters.</td></tr>}
             {paginated.map((tx) => (
               <tr key={tx.id} className="hover:bg-[var(--muted)]/50 group cursor-pointer" onClick={() => toast.info(`Opened ${tx.name} details (demo)`)}>
-                <td className="font-mono text-sm text-[var(--muted-foreground)]">
-                  {new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </td>
-                <td>
-                  <div className="w-8 h-8 rounded-full bg-[var(--primary-soft)] flex items-center justify-center text-xs font-semibold text-[var(--primary)]">
-                    {tx.avatar}
-                  </div>
-                </td>
+                <td className="font-mono text-sm text-[var(--muted-foreground)]">{new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
+                <td><div className="w-8 h-8 rounded-full bg-[var(--primary-soft)] flex items-center justify-center text-xs font-semibold text-[var(--primary)]">{tx.avatar}</div></td>
                 <td>
                   <div className="font-medium">{tx.name}</div>
                   <div className="text-xs text-[var(--muted-foreground)] line-clamp-1">{tx.description}</div>
                 </td>
-                <td className={`text-right font-medium tabular-nums ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {tx.type === 'income' ? '+' : ''}${Math.abs(tx.amount).toLocaleString()}
-                </td>
-                <td>
-                  <StatusBadge 
-                    status={tx.status} 
-                    kind={tx.status === 'failed' ? 'danger' : tx.status === 'pending' ? 'warning' : 'success'} 
-                  />
-                </td>
-                <td className="text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleCategorize(tx.id); }} 
-                    className="btn btn-secondary text-xs px-3 py-1"
-                  >
-                    Categorize
-                  </button>
-                </td>
+                <td className={`text-right font-medium tabular-nums ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>{tx.type === 'income' ? '+' : ''}${Math.abs(tx.amount).toLocaleString()}</td>
+                <td><StatusBadge status={tx.status} kind={tx.status === 'failed' ? 'danger' : tx.status === 'pending' ? 'warning' : 'success'} /></td>
+                <td className="text-right opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={(e) => { e.stopPropagation(); handleCategorize(tx.id); }} className="btn btn-secondary text-xs px-3 py-1">Categorize</button></td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between text-sm">
-        <div className="text-[var(--muted-foreground)]">
-          Showing {startIndex + 1}–{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length}
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="btn btn-secondary px-3 py-1 disabled:opacity-50"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <span className="px-3 text-[var(--muted-foreground)]">Page {currentPage} of {totalPages}</span>
-          <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="btn btn-secondary px-3 py-1 disabled:opacity-50"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+        <div className="flex items-center justify-between px-6 py-4 border-t text-sm">
+          <div className="text-[var(--muted-foreground)]">Showing {startIndex + 1}–{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length}</div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="btn btn-secondary px-3 py-1 disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
+            <span className="px-3 text-[var(--muted-foreground)]">Page {currentPage} of {totalPages}</span>
+            <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="btn btn-secondary px-3 py-1 disabled:opacity-50"><ChevronRight className="w-4 h-4" /></button>
+          </div>
         </div>
       </div>
 
-      <div className="text-xs text-[var(--muted-foreground)]">
-        COSS UI table variant • Agent auto-categorized 94% • Default 50 rows per page
-      </div>
+      <div className="text-xs text-[var(--muted-foreground)]">COSS UI CardFrame • Agent auto-categorized 94%</div>
     </div>
   );
 }
