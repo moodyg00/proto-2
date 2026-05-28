@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Calendar as CalendarIcon, Plus, Settings, ChevronLeft, ChevronRight, Clock, GripVertical, X } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Settings, ChevronLeft, ChevronRight, Clock, GripVertical, X, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Slot {
@@ -40,6 +40,7 @@ export default function SchedulePage() {
   const [draggedBooking, setDraggedBooking] = useState<{ dateKey: string; time: string; booked: string } | null>(null);
   const [selectedRange, setSelectedRange] = useState<{ dateKey: string; time: string }[]>([]);
   const [isRangeMode, setIsRangeMode] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const weekStart = new Date(currentWeek);
   weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
@@ -73,6 +74,37 @@ export default function SchedulePage() {
     return dayNum > 0 && dayNum <= daysInMonth ? dayNum : null;
   });
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '?') {
+        setShowShortcuts(!showShortcuts);
+        e.preventDefault();
+      }
+      if (e.key.toLowerCase() === 'r' && view === 'week') {
+        setIsRangeMode(!isRangeMode);
+        setSelectedRange([]);
+        toast(isRangeMode ? 'Range mode off' : 'Range mode on — click slots to select');
+      }
+      if (e.key === 'Escape') {
+        setSelectedRange([]);
+        setIsRangeMode(false);
+      }
+      if (e.key.toLowerCase() === 't') {
+        setCurrentWeek(new Date());
+        if (view === 'week') setWeekSlots(initialWeekSlots());
+        toast('Jumped to today');
+      }
+      if (e.key === 'ArrowLeft') navigate(-1);
+      if (e.key === 'ArrowRight') navigate(1);
+      if (e.key.toLowerCase() === 'w') setView('week');
+      if (e.key.toLowerCase() === 'm') setView('month');
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [view, isRangeMode, showShortcuts]);
+
   const handleDragStart = (dateKey: string, time: string, booked: string, e: React.DragEvent) => {
     setDraggedBooking({ dateKey, time, booked });
     e.dataTransfer.effectAllowed = 'move';
@@ -104,7 +136,7 @@ export default function SchedulePage() {
   const handleSlotClick = (dateKey: string, time: string, available: boolean, booked?: string) => {
     if (isRangeMode) {
       const newSelection = [...selectedRange, { dateKey, time }];
-      setSelectedRange(newSelection.length > 2 ? newSelection.slice(-2) : newSelection); // keep last 2 for range
+      setSelectedRange(newSelection.length > 2 ? newSelection.slice(-2) : newSelection);
       toast(`Range selected (${newSelection.length} slots)`);
       return;
     }
@@ -150,9 +182,10 @@ export default function SchedulePage() {
           <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-3">
             <CalendarIcon className="w-7 h-7 text-[var(--primary)]" /> Schedule
           </h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">Week or Month • Multi-day range selection</p>
+          <p className="text-sm text-[var(--muted-foreground)] mt-1">Week or Month • Multi-day range • Keyboard shortcuts</p>
         </div>
         <div className="flex gap-3">
+          <button onClick={() => setShowShortcuts(!showShortcuts)} className="btn btn-secondary flex items-center gap-2"><HelpCircle className="w-4 h-4" /> Shortcuts</button>
           <div className="flex rounded-lg border overflow-hidden">
             <button onClick={() => setView('week')} className={`px-4 py-1.5 text-sm ${view === 'week' ? 'bg-[var(--primary)] text-white' : 'hover:bg-[var(--muted)]'}`}>Week</button>
             <button onClick={() => setView('month')} className={`px-4 py-1.5 text-sm ${view === 'month' ? 'bg-[var(--primary)] text-white' : 'hover:bg-[var(--muted)]'}`}>Month</button>
@@ -176,12 +209,7 @@ export default function SchedulePage() {
 
         {view === 'week' && (
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => { setIsRangeMode(!isRangeMode); setSelectedRange([]); }}
-              className={`btn text-sm ${isRangeMode ? 'btn-primary' : 'btn-secondary'}`}
-            >
-              {isRangeMode ? 'Cancel Range' : 'Select Range'}
-            </button>
+            <button onClick={() => { setIsRangeMode(!isRangeMode); setSelectedRange([]); }} className={`btn text-sm ${isRangeMode ? 'btn-primary' : 'btn-secondary'}`}>{isRangeMode ? 'Cancel Range' : 'Select Range'}</button>
             {selectedRange.length > 0 && (
               <div className="flex gap-2">
                 <button onClick={() => applyBulkAction('block')} className="btn btn-secondary text-xs px-3 py-1">Block Selected</button>
@@ -265,12 +293,31 @@ export default function SchedulePage() {
         </div>
       )}
 
+      {/* Keyboard Shortcuts Panel */}
+      {showShortcuts && (
+        <div className="card p-6 text-sm">
+          <div className="flex justify-between items-center mb-4">
+            <div className="font-semibold flex items-center gap-2"><HelpCircle className="w-4 h-4" /> Keyboard Shortcuts</div>
+            <button onClick={() => setShowShortcuts(false)} className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"><X className="w-4 h-4" /></button>
+          </div>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-xs">
+            <div><span className="font-mono bg-[var(--muted)] px-1.5 py-0.5 rounded">?</span> Toggle shortcuts</div>
+            <div><span className="font-mono bg-[var(--muted)] px-1.5 py-0.5 rounded">r</span> Toggle range mode (Week)</div>
+            <div><span className="font-mono bg-[var(--muted)] px-1.5 py-0.5 rounded">Esc</span> Clear selection / exit range</div>
+            <div><span className="font-mono bg-[var(--muted)] px-1.5 py-0.5 rounded">t</span> Jump to today</div>
+            <div><span className="font-mono bg-[var(--muted)] px-1.5 py-0.5 rounded">← →</span> Navigate week/month</div>
+            <div><span className="font-mono bg-[var(--muted)] px-1.5 py-0.5 rounded">w / m</span> Switch Week / Month view</div>
+          </div>
+          <div className="text-[10px] text-[var(--muted-foreground)] mt-4">Shortcuts work globally on this page. Range mode + drag-and-drop are Week-only.</div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between text-xs text-[var(--muted-foreground)]">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-[var(--primary-soft)]"></div> Booked (draggable)</div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded border border-dashed border-[var(--primary)]"></div> Available</div>
         </div>
-        <div>Multi-day range selection • COSS UI • Real-time Agent sync</div>
+        <div>Press <span className="font-mono">?</span> for keyboard shortcuts • COSS UI • Real-time Agent sync</div>
       </div>
     </div>
   );
