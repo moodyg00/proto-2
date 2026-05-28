@@ -49,9 +49,9 @@ export default function AdminDashboard() {
         ].map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <Link key={i} href={stat.href} className="stat-card hover:border-violet-200 transition-colors block">
+            <Link key={i} href={stat.href} className="stat-card hover:border-[var(--primary)] transition-colors block">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-violet-50 rounded-lg text-violet-600"><Icon className="w-5 h-5" /></div>
+                <div className="p-2 bg-[var(--primary-soft)] rounded-lg text-[var(--primary)]"><Icon className="w-5 h-5" /></div>
                 <div>
                   <div className="text-2xl font-semibold">{stat.value}</div>
                   <div className="text-xs text-gray-500">{stat.label}</div>
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
             <div className="font-semibold flex items-center gap-2">
               <CheckSquare className="w-5 h-5" /> Recent Tasks
             </div>
-            <Link href="/admin/tasks" className="text-sm text-violet-600 hover:underline">View all →</Link>
+            <Link href="/admin/tasks" className="text-sm text-[var(--primary)] hover:underline">View all →</Link>
           </div>
 
           {loading && <div className="text-sm text-gray-400">Loading tasks…</div>}
@@ -85,14 +85,14 @@ export default function AdminDashboard() {
               <Link
                 key={t.id}
                 href="/admin/tasks"
-                className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50"
+                className="flex items-center justify-between p-3 rounded-lg border hover:bg-[var(--muted)]"
               >
                 <div className="font-medium">{t.title}</div>
                 <div className="flex items-center gap-2">
                   <StatusBadge status={t.priority} kind="priority" />
                   <StatusBadge status={t.status} />
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
@@ -134,8 +134,8 @@ export default function AdminDashboard() {
           ].map((m, i) => {
             const Icon = m.icon;
             return (
-              <Link key={i} href={m.href} className="card p-4 flex items-center gap-3 hover:border-violet-200 transition-colors">
-                <Icon className="w-5 h-5 text-violet-600" />
+              <Link key={i} href={m.href} className="card p-4 flex items-center gap-3 hover:border-[var(--primary)] transition-colors">
+                <Icon className="w-5 h-5 text-[var(--primary)]" />
                 <span className="font-medium">{m.label}</span>
               </Link>
             );

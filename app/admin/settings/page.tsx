@@ -66,6 +66,7 @@ const TABS: Tab[] = [
 
 export default function SettingsPage() {
   const [active, setActive] = useState<TabId>('theming');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const tab = TABS.find((t) => t.id === active)!;
 
   return (
@@ -80,68 +81,95 @@ export default function SettingsPage() {
         </p>
       </header>
 
-      <div
-        className="card overflow-hidden"
-        style={{ display: 'grid', gridTemplateColumns: '14rem 1fr', minHeight: '32rem' }}
-      >
-        {/* Vertical tab list */}
-        <nav
-          className="p-3"
-          style={{ borderRight: '1px solid var(--border)', background: 'var(--muted)' }}
-        >
-          <ul className="space-y-0.5">
-            {TABS.map((t) => {
-              const isActive = active === t.id;
-              return (
-                <li key={t.id}>
+      <div className="card overflow-hidden">
+        {/* Mobile accordion menu */}
+        <div className="md:hidden border-b p-3" style={{ borderColor: 'var(--border)' }}>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="w-full flex items-center justify-between text-sm font-medium px-3 py-2 rounded-lg hover:bg-[var(--muted)]"
+          >
+            <span>{tab.label}</span>
+            <span className="text-[var(--muted-foreground)]">{mobileMenuOpen ? '−' : '+'}</span>
+          </button>
+          {mobileMenuOpen && (
+            <div className="mt-2 space-y-1">
+              {TABS.map((t) => {
+                const isActive = active === t.id;
+                return (
                   <button
-                    type="button"
-                    onClick={() => setActive(t.id)}
+                    key={t.id}
+                    onClick={() => {
+                      setActive(t.id);
+                      setMobileMenuOpen(false);
+                    }}
                     className="w-full text-left rounded-lg px-3 py-2 text-sm transition-colors"
-                    style={
-                      isActive
-                        ? {
-                            background: 'var(--primary-soft)',
-                            color: 'var(--primary)',
-                            fontWeight: 500,
-                          }
-                        : { color: 'var(--foreground)' }
-                    }
+                    style={{
+                      background: isActive ? 'var(--primary-soft)' : 'transparent',
+                      color: isActive ? 'var(--primary)' : 'var(--foreground)',
+                      fontWeight: isActive ? 500 : 400,
+                    }}
                   >
                     {t.label}
                   </button>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-        {/* Tab body */}
-        <div className="p-6 space-y-1">
-          <div className="space-y-1 pb-4" style={{ borderBottom: '1px solid var(--border)', marginBottom: '1.25rem' }}>
-            <h2 className="text-lg font-semibold">{tab.label}</h2>
-            <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-              {tab.description}
-            </p>
+        <div className="grid md:grid-cols-[14rem_1fr] min-h-[32rem]">
+          {/* Desktop vertical tab list (COSS-style clean nav) */}
+          <nav className="hidden md:block p-3 border-r" style={{ borderColor: 'var(--border)', background: 'var(--muted)' }}>
+            <ul className="space-y-0.5">
+              {TABS.map((t) => {
+                const isActive = active === t.id;
+                return (
+                  <li key={t.id}>
+                    <button
+                      type="button"
+                      onClick={() => setActive(t.id)}
+                      className="w-full text-left rounded-lg px-3 py-2 text-sm transition-colors"
+                      style={{
+                        background: isActive ? 'var(--primary-soft)' : 'transparent',
+                        color: isActive ? 'var(--primary)' : 'var(--foreground)',
+                        fontWeight: isActive ? 500 : 400,
+                      }}
+                    >
+                      {t.label}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          {/* Tab body */}
+          <div className="p-6 space-y-1">
+            <div className="space-y-1 pb-4 border-b" style={{ borderColor: 'var(--border)', marginBottom: '1.25rem' }}>
+              <h2 className="text-lg font-semibold">{tab.label}</h2>
+              <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+                {tab.description}
+              </p>
+            </div>
+
+            {tab.id === 'theming' && <ThemingPanel />}
+
+            {tab.id !== 'theming' && tab.id !== 'advanced' && (
+              <SettingsCategoryPanel
+                title={tab.label}
+                description={tab.description}
+                modules={tab.modules ?? []}
+              />
+            )}
+
+            {tab.id === 'advanced' && (
+              <SettingsCategoryPanel
+                title="Advanced (all settings)"
+                description="Raw module/key/value editor. Equivalent to Proto-1's SettingResource list view."
+                modules={['business', 'accounting', 'operations', 'crm', 'customer_relations', 'ui_preferences', 'user_preferences']}
+              />
+            )}
           </div>
-
-          {tab.id === 'theming' && <ThemingPanel />}
-
-          {tab.id !== 'theming' && tab.id !== 'advanced' && (
-            <SettingsCategoryPanel
-              title={tab.label}
-              description={tab.description}
-              modules={tab.modules ?? []}
-            />
-          )}
-
-          {tab.id === 'advanced' && (
-            <SettingsCategoryPanel
-              title="Advanced (all settings)"
-              description="Raw module/key/value editor. Equivalent to Proto-1's SettingResource list view."
-              modules={['business', 'accounting', 'operations', 'crm', 'customer_relations', 'ui_preferences', 'user_preferences']}
-            />
-          )}
         </div>
       </div>
     </div>
