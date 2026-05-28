@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Calendar as CalendarIcon, Plus, Settings, ChevronLeft, ChevronRight, Clock, GripVertical } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Settings, ChevronLeft, ChevronRight, Clock, GripVertical, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Slot {
@@ -38,6 +38,8 @@ export default function SchedulePage() {
   const [view, setView] = useState<'week' | 'month'>('week');
   const [weekSlots, setWeekSlots] = useState(initialWeekSlots());
   const [draggedBooking, setDraggedBooking] = useState<{ dateKey: string; time: string; booked: string } | null>(null);
+  const [selectedRange, setSelectedRange] = useState<{ dateKey: string; time: string }[]>([]);
+  const [isRangeMode, setIsRangeMode] = useState(false);
 
   const weekStart = new Date(currentWeek);
   weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
@@ -59,14 +61,13 @@ export default function SchedulePage() {
       newMonth.setMonth(newMonth.getMonth() + direction);
       setCurrentWeek(newMonth);
     }
+    setSelectedRange([]);
   };
 
-  // Month view helpers
   const monthStart = new Date(currentWeek.getFullYear(), currentWeek.getMonth(), 1);
   const monthEnd = new Date(currentWeek.getFullYear(), currentWeek.getMonth() + 1, 0);
   const startDay = monthStart.getDay();
   const daysInMonth = monthEnd.getDate();
-
   const monthDays = Array.from({ length: 42 }, (_, i) => {
     const dayNum = i - startDay + 1;
     return dayNum > 0 && dayNum <= daysInMonth ? dayNum : null;
@@ -101,8 +102,16 @@ export default function SchedulePage() {
   };
 
   const handleSlotClick = (dateKey: string, time: string, available: boolean, booked?: string) => {
+    if (isRangeMode) {
+      const newSelection = [...selectedRange, { dateKey, time }];
+      setSelectedRange(newSelection.length > 2 ? newSelection.slice(-2) : newSelection); // keep last 2 for range
+      toast(`Range selected (${newSelection.length} slots)`);
+      return;
+    }
+
     if (booked) { toast(`Booked with ${booked}. Drag to reschedule.`); return; }
     if (!available) { toast.error('Slot unavailable'); return; }
+
     const client = prompt('Client name?') || 'New Client';
     setWeekSlots(prev => {
       const updated = { ...prev };
@@ -112,6 +121,28 @@ export default function SchedulePage() {
     toast.success(`Booked ${time} for ${client}`);
   };
 
+  const applyBulkAction = (action: 'block' | 'book' | 'clear') => {
+    if (selectedRange.length === 0) return;
+
+    setWeekSlots(prev => {
+      const updated = { ...prev };
+      selectedRange.forEach(({ dateKey, time }) => {
+        if (!updated[dateKey]) return;
+        updated[dateKey] = updated[dateKey].map(s => {
+          if (s.time !== time) return s;
+          if (action === 'block') return { ...s, available: false, booked: undefined };
+          if (action === 'book') return { ...s, booked: 'Bulk Booking', available: false };
+          return { ...s, booked: undefined, available: true };
+        });
+      });
+      return updated;
+    });
+
+    toast.success(`${action === 'block' ? 'Blocked' : action === 'book' ? 'Booked' : 'Cleared'} ${selectedRange.length} slots`);
+    setSelectedRange([]);
+    setIsRangeMode(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -119,7 +150,7 @@ export default function SchedulePage() {
           <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-3">
             <CalendarIcon className="w-7 h-7 text-[var(--primary)]" /> Schedule
           </h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">Week or Month view • Drag to reschedule</p>
+          <p className="text-sm text-[var(--muted-foreground)] mt-1">Week or Month • Multi-day range selection</p>
         </div>
         <div className="flex gap-3">
           <div className="flex rounded-lg border overflow-hidden">
@@ -142,7 +173,24 @@ export default function SchedulePage() {
             {view === 'week' ? formatWeekRange() : currentWeek.toLocaleString('default', { month: 'long', year: 'numeric' })}
           </div>
         </div>
-        <div className="text-xs text-[var(--muted-foreground)]">{view === 'week' ? 'Drag booked items' : 'Click day for details'}</div>
+
+        {view === 'week' && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setIsRangeMode(!isRangeMode); setSelectedRange([]); }}
+              className={`btn text-sm ${isRangeMode ? 'btn-primary' : 'btn-secondary'}`}
+            >
+              {isRangeMode ? 'Cancel Range' : 'Select Range'}
+            </button>
+            {selectedRange.length > 0 && (
+              <div className="flex gap-2">
+                <button onClick={() => applyBulkAction('block')} className="btn btn-secondary text-xs px-3 py-1">Block Selected</button>
+                <button onClick={() => applyBulkAction('book')} className="btn btn-primary text-xs px-3 py-1">Book Selected</button>
+                <button onClick={() => applyBulkAction('clear')} className="btn btn-secondary text-xs px-3 py-1"><X className="w-3 h-3" /></button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {view === 'week' ? (
@@ -154,6 +202,7 @@ export default function SchedulePage() {
               return <div key={idx} className="p-4 text-center border-r last:border-r-0"><div className="font-semibold text-sm">{day}</div><div className="text-xs text-[var(--muted-foreground)]">{date.getDate()}</div></div>;
             })}
           </div>
+
           <div className="divide-y">
             {['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'].map((time, tIdx) => {
               const dateKeys = Object.keys(weekSlots).slice(0, 5);
@@ -164,17 +213,20 @@ export default function SchedulePage() {
                     const slot = weekSlots[dateKey][tIdx];
                     const isBooked = !!slot.booked;
                     const isAvailable = slot.available && !isBooked;
+                    const isSelected = selectedRange.some(s => s.dateKey === dateKey && s.time === time);
+
                     return (
                       <div
                         key={dIdx}
-                        draggable={isBooked}
-                        onDragStart={isBooked ? (e) => handleDragStart(dateKey, time, slot.booked!, e) : undefined}
+                        draggable={isBooked && !isRangeMode}
+                        onDragStart={isBooked && !isRangeMode ? (e) => handleDragStart(dateKey, time, slot.booked!, e) : undefined}
                         onDragOver={handleDragOver}
                         onDrop={(e) => handleDrop(dateKey, time, e)}
                         onClick={() => handleSlotClick(dateKey, time, slot.available, slot.booked)}
                         className={`p-3 border-r last:border-r-0 min-h-[56px] flex items-center justify-center cursor-pointer transition-all group
                           ${isBooked ? 'bg-[var(--primary-soft)] text-[var(--primary)]' : ''}
                           ${isAvailable ? 'hover:bg-[var(--primary-soft)]/60' : ''}
+                          ${isSelected ? 'ring-2 ring-[var(--primary)] bg-[var(--primary-soft)]/30' : ''}
                         `}
                       >
                         {isBooked ? (
@@ -209,7 +261,7 @@ export default function SchedulePage() {
               );
             })}
           </div>
-          <div className="text-xs text-center text-[var(--muted-foreground)] mt-4">Click any day for details • Month view (demo data)</div>
+          <div className="text-xs text-center text-[var(--muted-foreground)] mt-4">Click any day for details</div>
         </div>
       )}
 
@@ -218,7 +270,7 @@ export default function SchedulePage() {
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-[var(--primary-soft)]"></div> Booked (draggable)</div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded border border-dashed border-[var(--primary)]"></div> Available</div>
         </div>
-        <div>Week + Month views • COSS UI • Real-time Agent sync</div>
+        <div>Multi-day range selection • COSS UI • Real-time Agent sync</div>
       </div>
     </div>
   );
