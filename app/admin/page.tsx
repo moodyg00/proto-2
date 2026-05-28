@@ -16,18 +16,17 @@ export default function AdminDashboard() {
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function loadRecent() {
-    try {
-      const res = await fetch('/api/tasks/actions');
-      const data = await res.json();
-      setRecentTasks((data.tasks || []).slice(0, 5));
-    } catch {
-      setRecentTasks([]);
-    }
-    setLoading(false);
-  }
-
   useEffect(() => {
+    async function loadRecent() {
+      try {
+        const res = await fetch('/api/tasks/actions');
+        const data = await res.json();
+        setRecentTasks((data.tasks || []).slice(0, 5));
+      } catch {
+        setRecentTasks([]);
+      }
+      setLoading(false);
+    }
     loadRecent();
   }, []);
 
