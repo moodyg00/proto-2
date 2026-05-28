@@ -99,7 +99,7 @@ export function AdminSidebar({
         className="p-4 mt-auto text-[11px] hidden lg:block"
         style={{ borderTop: '1px solid var(--border)', color: 'var(--muted-foreground)' }}
       >
-        Complete application layer · Tasks · Agents · Memory
+        Operational quick reference · Business Lab lives in the companion app
       </div>
     </aside>
   );

@@ -1,13 +1,7 @@
 import React from 'react';
-import { PagePlaceholder } from '../../../src/components/ui/PagePlaceholder';
+import { RecordIndexPage } from '@/src/components/admin/RecordIndexPage';
+import { INVOICES_CONFIG } from '@/src/components/admin/record-index-config';
 
 export default function Page() {
-  return (
-    <PagePlaceholder
-      title="Invoices"
-      description="Customer invoices."
-      group="Operations"
-      source="app/Filament/Resources/InvoiceResource.php"
-    />
-  );
+  return <RecordIndexPage config={INVOICES_CONFIG} />;
 }

@@ -17,18 +17,128 @@ import React, { useState } from 'react';
 import {
   PRIMARY_PRESETS,
   PALETTE_PRESETS,
+  SURFACE_PRESETS,
   useTheme,
   type PrimaryName,
   type PaletteName,
+  type SurfaceToken,
 } from '../../providers/theme-provider';
 import { Pill } from '../ui/Pill';
 
 export function ThemingPanel() {
-  const { primary, primaryHex, palette, setPrimary, setPrimaryHex, setPalette, reset } = useTheme();
+  const {
+    lightBackground,
+    lightSurface,
+    darkBackground,
+    darkSurface,
+    surfacePreset,
+    primary,
+    primaryHex,
+    palette,
+    setPrimary,
+    setPrimaryHex,
+    setPalette,
+    setSurfaceToken,
+    applySurfacePreset,
+    reset,
+  } = useTheme();
   const [hexDraft, setHexDraft] = useState(primaryHex ?? '');
+  const [surfaceDrafts, setSurfaceDrafts] = useState<Record<SurfaceToken, string>>({
+    lightBackground,
+    lightSurface,
+    darkBackground,
+    darkSurface,
+  });
+
+  const syncSurfaceDraft = (token: SurfaceToken, value: string) => {
+    setSurfaceDrafts((drafts) => ({ ...drafts, [token]: value }));
+    setSurfaceToken(token, value);
+  };
 
   return (
     <div className="space-y-8">
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <h3 className="text-base font-semibold">Interface surfaces</h3>
+          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+            Light and dark mode now have their own background and surface tones. Start from a preset, then fine-tune.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+          {SURFACE_PRESETS.map((preset) => {
+            const active = surfacePreset === preset.name;
+            return (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => {
+                  applySurfacePreset(preset.name);
+                  setSurfaceDrafts({
+                    lightBackground: preset.lightBackground,
+                    lightSurface: preset.lightSurface,
+                    darkBackground: preset.darkBackground,
+                    darkSurface: preset.darkSurface,
+                  });
+                }}
+                className="rounded-xl p-4 text-left transition-colors"
+                style={{
+                  background: 'var(--card)',
+                  border: `1px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
+                  boxShadow: active ? '0 0 0 2px var(--primary-soft)' : undefined,
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">{preset.label}</span>
+                  {active && <Pill tone="accent">selected</Pill>}
+                </div>
+                <p className="text-xs mb-3" style={{ color: 'var(--muted-foreground)' }}>{preset.description}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[preset.lightBackground, preset.lightSurface, preset.darkBackground, preset.darkSurface].map((color) => (
+                    <span
+                      key={color}
+                      className="h-9 rounded-lg border"
+                      style={{ background: color, borderColor: 'var(--border)' }}
+                    />
+                  ))}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:grid-cols-4">
+          <SurfacePicker
+            label="Light background"
+            token="lightBackground"
+            value={surfaceDrafts.lightBackground}
+            options={['#ffffff', '#f8fafc', '#fffdf7', '#f5fbfb']}
+            onChange={syncSurfaceDraft}
+          />
+          <SurfacePicker
+            label="Light surface"
+            token="lightSurface"
+            value={surfaceDrafts.lightSurface}
+            options={['#f8fafc', '#eef2f7', '#f7f1e6', '#e6f1f2']}
+            onChange={syncSurfaceDraft}
+          />
+          <SurfacePicker
+            label="Dark background"
+            token="darkBackground"
+            value={surfaceDrafts.darkBackground}
+            options={['#000000', '#020617', '#0b0f0c', '#081214']}
+            onChange={syncSurfaceDraft}
+          />
+          <SurfacePicker
+            label="Dark surface"
+            token="darkSurface"
+            value={surfaceDrafts.darkSurface}
+            options={['#0f172a', '#111827', '#16211b', '#102126']}
+            onChange={syncSurfaceDraft}
+          />
+        </div>
+      </section>
+
       {/* MAIN COLOR ----------------------------------------------------- */}
       <section className="space-y-3">
         <div className="space-y-1">
@@ -267,3 +377,66 @@ function paletteVars(p: PaletteName): React.CSSProperties {
 
 /* satisfy unused-name linter for type alias used in props only */
 export type { PrimaryName };
+
+function SurfacePicker({
+  label,
+  token,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  token: SurfaceToken;
+  value: string;
+  options: string[];
+  onChange: (token: SurfaceToken, value: string) => void;
+}) {
+  return (
+    <div className="rounded-xl border p-4 space-y-3" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+      <div className="space-y-1">
+        <div className="text-sm font-medium">{label}</div>
+        <div className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{value.toUpperCase()}</div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(token, e.target.value)}
+          className="h-11 w-11 rounded-lg border p-1 cursor-pointer"
+          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+        />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => {
+            const next = e.target.value;
+            if (/^#[0-9a-fA-F]{0,6}$/.test(next)) onChange(token, next.length === 7 ? next : value);
+          }}
+          readOnly
+          className="input"
+          style={{ fontFamily: 'ui-monospace, monospace' }}
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => {
+          const active = option.toLowerCase() === value.toLowerCase();
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onChange(token, option)}
+              className="h-8 w-8 rounded-full border transition-transform hover:scale-105"
+              style={{
+                background: option,
+                borderColor: active ? 'var(--primary)' : 'var(--border)',
+                boxShadow: active ? '0 0 0 2px var(--primary-soft)' : undefined,
+              }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}

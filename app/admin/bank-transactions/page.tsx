@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { StatusBadge } from '../../../src/components/admin/StatusBadge';
 import { ArrowUpRight, ArrowDownRight, Search, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -28,6 +30,7 @@ const mockTransactions: Transaction[] = [
 ];
 
 export default function BankTransactionsPage() {
+  const router = useRouter();
   const [transactions] = useState<Transaction[]>(mockTransactions);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense' | 'pending'>('all');
   const [search, setSearch] = useState('');
@@ -61,10 +64,9 @@ export default function BankTransactionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Bank Transactions</h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">All records • COSS UI CardFrame</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.22em]" style={{ borderColor: 'color-mix(in srgb, var(--border) 72%, #111111 28%)', background: 'color-mix(in srgb, var(--card) 84%, #f3efe7 16%)', color: 'var(--muted-foreground)' }}>
+          Bank Transactions
         </div>
         <div className="flex gap-3">
           <button onClick={() => toast('Export CSV (demo)')} className="btn btn-secondary">Export</button>
@@ -109,7 +111,9 @@ export default function BankTransactionsPage() {
       {/* COSS UI CardFrame with card-style table */}
       <div className="card p-0 overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <div className="font-semibold">All Records</div>
+          <div className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em]" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
+            All Records
+          </div>
           <div className="text-xs text-[var(--muted-foreground)]">{filtered.length} transactions</div>
         </div>
 
@@ -127,16 +131,27 @@ export default function BankTransactionsPage() {
           <tbody>
             {paginated.length === 0 && <tr><td colSpan={6} className="p-12 text-center text-[var(--muted-foreground)]">No transactions match your filters.</td></tr>}
             {paginated.map((tx) => (
-              <tr key={tx.id} className="hover:bg-[var(--muted)]/50 group cursor-pointer" onClick={() => toast.info(`Opened ${tx.name} details (demo)`)}>
+              <tr
+                key={tx.id}
+                className="hover:bg-[var(--muted)]/50 group cursor-pointer"
+                onClick={() => router.push(`/admin/bank-transactions/${tx.id}`)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    router.push(`/admin/bank-transactions/${tx.id}`);
+                  }
+                }}
+                tabIndex={0}
+              >
                 <td className="font-mono text-sm text-[var(--muted-foreground)]">{new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
                 <td><div className="w-8 h-8 rounded-full bg-[var(--primary-soft)] flex items-center justify-center text-xs font-semibold text-[var(--primary)]">{tx.avatar}</div></td>
                 <td>
-                  <div className="font-medium">{tx.name}</div>
+                  <div className="font-medium"><Link href={`/admin/bank-transactions/${tx.id}`} className="underline-offset-4 hover:underline">{tx.name}</Link></div>
                   <div className="text-xs text-[var(--muted-foreground)] line-clamp-1">{tx.description}</div>
                 </td>
                 <td className={`text-right font-medium tabular-nums ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>{tx.type === 'income' ? '+' : ''}${Math.abs(tx.amount).toLocaleString()}</td>
-                <td><StatusBadge status={tx.status} kind={tx.status === 'failed' ? 'danger' : tx.status === 'pending' ? 'warning' : 'success'} /></td>
-                <td className="text-right opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={(e) => { e.stopPropagation(); handleCategorize(tx.id); }} className="btn btn-secondary text-xs px-3 py-1">Categorize</button></td>
+                <td><StatusBadge status={tx.status} /></td>
+                <td className="text-right opacity-0 group-hover:opacity-100 transition-opacity"><Link href={`/admin/bank-transactions/${tx.id}`} className="btn btn-secondary text-xs px-3 py-1">View</Link></td>
               </tr>
             ))}
           </tbody>

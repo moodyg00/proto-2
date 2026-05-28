@@ -17,15 +17,20 @@
  * ========================================================================= */
 
 :root {
-  --background: #ffffff;
+  --light-background: #ffffff;
+  --light-surface: #f8fafc;
+  --dark-background: #000000;
+  --dark-surface: #0f172a;
+
+  --background: var(--light-background);
   --foreground: #0f172a;
-  --card: #ffffff;
+  --card: var(--light-surface);
   --card-foreground: #0f172a;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --muted: #f1f5f9;
+  --border: color-mix(in srgb, var(--light-surface) 74%, #cbd5e1 26%);
+  --input: var(--border);
+  --muted: color-mix(in srgb, var(--light-surface) 86%, #e2e8f0 14%);
   --muted-foreground: #64748b;
-  --accent: #f1f5f9;
+  --accent: color-mix(in srgb, var(--light-surface) 76%, var(--primary-soft) 24%);
   --accent-foreground: #0f172a;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
@@ -35,6 +40,20 @@
   --primary-foreground: #ffffff;
   --primary-soft: #e2e8f0;
   --ring: #0f172a;
+}
+
+html.dark {
+  --background: var(--dark-background);
+  --foreground: #f8fafc;
+  --card: var(--dark-surface);
+  --card-foreground: #f8fafc;
+  --border: color-mix(in srgb, var(--dark-surface) 84%, #e2e8f0 16%);
+  --input: var(--border);
+  --muted: color-mix(in srgb, var(--dark-surface) 88%, #020617 12%);
+  --muted-foreground: #94a3b8;
+  --accent: color-mix(in srgb, var(--dark-surface) 88%, var(--primary) 12%);
+  --accent-foreground: #f8fafc;
+  --primary-foreground: #ffffff;
 }
 
 /* =========================================================================
@@ -156,6 +175,21 @@ body {
   color: var(--foreground);
 }
 
+/* Normalize default browser link styles for unclassed anchors only. */
+a:not([class]) {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:not([class]):visited {
+  color: inherit;
+}
+
+a:not([class]):hover {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
 /* -------------------------------------------------------------------------
  * Lightweight surface utilities used until COSS primitives land.
  * These all consume CSS variables so they react to theme changes.
@@ -236,13 +270,28 @@ body {
   border: 1px solid var(--input);
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  background: var(--card);
+  background: var(--background);
   color: var(--foreground);
+  color-scheme: light;
+}
+.input::placeholder {
+  color: color-mix(in srgb, var(--muted-foreground) 72%, transparent 28%);
 }
 .input:focus {
   border-color: var(--primary);
   outline: none;
   box-shadow: 0 0 0 1px var(--primary);
+}
+
+select,
+textarea {
+  color-scheme: light;
+}
+
+html.dark .input,
+html.dark select,
+html.dark textarea {
+  color-scheme: dark;
 }
 
 .stat-card {

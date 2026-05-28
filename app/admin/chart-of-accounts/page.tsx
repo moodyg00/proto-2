@@ -1,13 +1,7 @@
 import React from 'react';
-import { PagePlaceholder } from '../../../src/components/ui/PagePlaceholder';
+import { RecordIndexPage } from '@/src/components/admin/RecordIndexPage';
+import { CHART_OF_ACCOUNTS_CONFIG } from '@/src/components/admin/record-index-config';
 
 export default function Page() {
-  return (
-    <PagePlaceholder
-      title="Chart of Accounts"
-      description="GL account hierarchy."
-      group="Accounting"
-      source="app/Filament/Resources/ChartOfAccountResource.php"
-    />
-  );
+  return <RecordIndexPage config={CHART_OF_ACCOUNTS_CONFIG} />;
 }

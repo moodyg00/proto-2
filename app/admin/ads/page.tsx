@@ -1,13 +1,7 @@
 import React from 'react';
-import { PagePlaceholder } from '../../../src/components/ui/PagePlaceholder';
+import { RecordIndexPage } from '@/src/components/admin/RecordIndexPage';
+import { ADS_CONFIG } from '@/src/components/admin/record-index-config';
 
 export default function Page() {
-  return (
-    <PagePlaceholder
-      title="Ads"
-      description="Active ad creatives across channels."
-      group="Marketing & Ads"
-      source="app/Filament/Resources/AdResource.php"
-    />
-  );
+  return <RecordIndexPage config={ADS_CONFIG} />;
 }

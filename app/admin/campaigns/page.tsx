@@ -1,13 +1,7 @@
 import React from 'react';
-import { PagePlaceholder } from '../../../src/components/ui/PagePlaceholder';
+import { RecordIndexPage } from '@/src/components/admin/RecordIndexPage';
+import { CAMPAIGNS_CONFIG } from '@/src/components/admin/record-index-config';
 
 export default function Page() {
-  return (
-    <PagePlaceholder
-      title="Campaigns"
-      description="Campaign planning and orchestration."
-      group="Marketing & Ads"
-      source="app/Filament/Resources/CampaignResource.php"
-    />
-  );
+  return <RecordIndexPage config={CAMPAIGNS_CONFIG} />;
 }

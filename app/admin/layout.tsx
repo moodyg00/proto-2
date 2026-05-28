@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import { Menu, X, User, LogOut, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../src/providers/theme-provider';
@@ -9,16 +8,12 @@ import { useTheme } from '../../src/providers/theme-provider';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const { palette, setPalette } = useTheme();
+  const { mode, setMode } = useTheme();
 
-  const isDark = palette === 'monochrome';
+  const isDark = mode === 'dark';
 
   const toggleDarkMode = () => {
-    if (isDark) {
-      setPalette('default');
-    } else {
-      setPalette('monochrome');
-    }
+    setMode(isDark ? 'light' : 'dark');
     setUserMenuOpen(false);
   };
 
@@ -50,10 +45,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex items-center gap-4 text-sm">
-            <Link href="/admin/settings" style={{ color: 'var(--primary)' }} className="hover:underline">
-              Settings
-            </Link>
-
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}

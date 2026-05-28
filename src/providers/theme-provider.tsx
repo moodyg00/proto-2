@@ -24,6 +24,8 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+export type ModeName = 'light' | 'dark';
+
 export type PrimaryName =
   | 'violet'
   | 'indigo'
@@ -47,6 +49,9 @@ export const PRIMARY_PRESETS: { name: PrimaryName; label: string; hex: string; s
 
 export type PaletteName = 'default' | 'vivid' | 'pastel' | 'monochrome';
 
+export type SurfacePresetName = 'pure' | 'slate' | 'cream' | 'ocean';
+export type SurfaceToken = 'lightBackground' | 'lightSurface' | 'darkBackground' | 'darkSurface';
+
 export const PALETTE_PRESETS: { name: PaletteName; label: string; description: string }[] = [
   { name: 'default',    label: 'Default',    description: 'Tailwind weights with saturated semantics.' },
   { name: 'vivid',      label: 'Vivid',      description: 'High-saturation neons for emphasis.' },
@@ -54,24 +59,86 @@ export const PALETTE_PRESETS: { name: PaletteName; label: string; description: s
   { name: 'monochrome', label: 'Monochrome', description: 'Slate gradient, single accent.' },
 ];
 
+export const SURFACE_PRESETS: Array<{
+  name: SurfacePresetName;
+  label: string;
+  description: string;
+  lightBackground: string;
+  lightSurface: string;
+  darkBackground: string;
+  darkSurface: string;
+}> = [
+  {
+    name: 'pure',
+    label: 'Pure',
+    description: 'White-white and black-black with crisp contrast.',
+    lightBackground: '#ffffff',
+    lightSurface: '#f8fafc',
+    darkBackground: '#000000',
+    darkSurface: '#0f172a',
+  },
+  {
+    name: 'slate',
+    label: 'Slate',
+    description: 'Cool neutral surfaces with a slightly grayer light mode.',
+    lightBackground: '#f8fafc',
+    lightSurface: '#eef2f7',
+    darkBackground: '#020617',
+    darkSurface: '#111827',
+  },
+  {
+    name: 'cream',
+    label: 'Cream',
+    description: 'Warm editorial light mode with a mossy dark base.',
+    lightBackground: '#fffdf7',
+    lightSurface: '#f7f1e6',
+    darkBackground: '#0b0f0c',
+    darkSurface: '#16211b',
+  },
+  {
+    name: 'ocean',
+    label: 'Ocean',
+    description: 'Cool sea-glass light mode with deep teal dark surfaces.',
+    lightBackground: '#f5fbfb',
+    lightSurface: '#e6f1f2',
+    darkBackground: '#081214',
+    darkSurface: '#102126',
+  },
+];
+
 export interface ThemeState {
+  mode: ModeName;
   primary: PrimaryName;
   primaryHex: string | null;
   palette: PaletteName;
+  surfacePreset: SurfacePresetName | 'custom';
+  lightBackground: string;
+  lightSurface: string;
+  darkBackground: string;
+  darkSurface: string;
 }
 
 const DEFAULT_THEME: ThemeState = {
+  mode: 'light',
   primary: 'slate',
   primaryHex: null,
-  palette: 'monochrome',
+  palette: 'default',
+  surfacePreset: 'pure',
+  lightBackground: '#ffffff',
+  lightSurface: '#f8fafc',
+  darkBackground: '#000000',
+  darkSurface: '#0f172a',
 };
 
 const STORAGE_KEY = 'proto2.theme';
 
 interface ThemeContextValue extends ThemeState {
+  setMode: (next: ModeName) => void;
   setPrimary: (next: PrimaryName) => void;
   setPrimaryHex: (hex: string | null) => void;
   setPalette: (next: PaletteName) => void;
+  setSurfaceToken: (token: SurfaceToken, value: string) => void;
+  applySurfacePreset: (preset: SurfacePresetName) => void;
   reset: () => void;
 }
 
@@ -84,9 +151,22 @@ function readStored(): ThemeState | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<ThemeState>;
     return {
+      mode: parsed.mode === 'dark' ? 'dark' : DEFAULT_THEME.mode,
       primary: (parsed.primary as PrimaryName) ?? DEFAULT_THEME.primary,
       primaryHex: typeof parsed.primaryHex === 'string' ? parsed.primaryHex : null,
       palette: (parsed.palette as PaletteName) ?? DEFAULT_THEME.palette,
+      surfacePreset:
+        parsed.surfacePreset === 'pure' ||
+        parsed.surfacePreset === 'slate' ||
+        parsed.surfacePreset === 'cream' ||
+        parsed.surfacePreset === 'ocean' ||
+        parsed.surfacePreset === 'custom'
+          ? parsed.surfacePreset
+          : DEFAULT_THEME.surfacePreset,
+      lightBackground: typeof parsed.lightBackground === 'string' ? parsed.lightBackground : DEFAULT_THEME.lightBackground,
+      lightSurface: typeof parsed.lightSurface === 'string' ? parsed.lightSurface : DEFAULT_THEME.lightSurface,
+      darkBackground: typeof parsed.darkBackground === 'string' ? parsed.darkBackground : DEFAULT_THEME.darkBackground,
+      darkSurface: typeof parsed.darkSurface === 'string' ? parsed.darkSurface : DEFAULT_THEME.darkSurface,
     };
   } catch {
     return null;
@@ -106,8 +186,14 @@ function softenHex(hex: string, alpha = 0.15): string {
 function applyToDom(state: ThemeState) {
   if (typeof document === 'undefined') return;
   const html = document.documentElement;
+  html.classList.toggle('dark', state.mode === 'dark');
   html.setAttribute('data-primary', state.primary);
   html.setAttribute('data-palette', state.palette);
+  html.setAttribute('data-surface-preset', state.surfacePreset);
+  html.style.setProperty('--light-background', state.lightBackground);
+  html.style.setProperty('--light-surface', state.lightSurface);
+  html.style.setProperty('--dark-background', state.darkBackground);
+  html.style.setProperty('--dark-surface', state.darkSurface);
 
   // Custom hex wins over named preset.
   if (state.primaryHex) {
@@ -145,6 +231,10 @@ export function ThemeProvider({ initial, children }: ProviderProps) {
     }
   }, [state]);
 
+  const setMode = useCallback((next: ModeName) => {
+    setState((s) => ({ ...s, mode: next }));
+  }, []);
+
   const setPrimary = useCallback((next: PrimaryName) => {
     setState((s) => ({ ...s, primary: next, primaryHex: null }));
   }, []);
@@ -154,11 +244,35 @@ export function ThemeProvider({ initial, children }: ProviderProps) {
   const setPalette = useCallback((next: PaletteName) => {
     setState((s) => ({ ...s, palette: next }));
   }, []);
+  const setSurfaceToken = useCallback((token: SurfaceToken, value: string) => {
+    setState((s) => ({ ...s, [token]: value, surfacePreset: 'custom' }));
+  }, []);
+  const applySurfacePreset = useCallback((preset: SurfacePresetName) => {
+    const next = SURFACE_PRESETS.find((item) => item.name === preset);
+    if (!next) return;
+    setState((s) => ({
+      ...s,
+      surfacePreset: next.name,
+      lightBackground: next.lightBackground,
+      lightSurface: next.lightSurface,
+      darkBackground: next.darkBackground,
+      darkSurface: next.darkSurface,
+    }));
+  }, []);
   const reset = useCallback(() => setState(DEFAULT_THEME), []);
 
   const value = useMemo<ThemeContextValue>(
-    () => ({ ...state, setPrimary, setPrimaryHex, setPalette, reset }),
-    [state, setPrimary, setPrimaryHex, setPalette, reset]
+    () => ({
+      ...state,
+      setMode,
+      setPrimary,
+      setPrimaryHex,
+      setPalette,
+      setSurfaceToken,
+      applySurfacePreset,
+      reset,
+    }),
+    [state, setMode, setPrimary, setPrimaryHex, setPalette, setSurfaceToken, applySurfacePreset, reset]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
@@ -182,8 +296,14 @@ export const themeBootstrapScript = `
     if (!raw) return;
     var t = JSON.parse(raw);
     var html = document.documentElement;
+    html.classList.toggle('dark', t.mode === 'dark');
     if (t.primary) html.setAttribute('data-primary', t.primary);
     if (t.palette) html.setAttribute('data-palette', t.palette);
+    if (t.surfacePreset) html.setAttribute('data-surface-preset', t.surfacePreset);
+    if (t.lightBackground) html.style.setProperty('--light-background', t.lightBackground);
+    if (t.lightSurface) html.style.setProperty('--light-surface', t.lightSurface);
+    if (t.darkBackground) html.style.setProperty('--dark-background', t.darkBackground);
+    if (t.darkSurface) html.style.setProperty('--dark-surface', t.darkSurface);
     if (t.primaryHex) {
       html.style.setProperty('--primary', t.primaryHex);
       html.style.setProperty('--ring', t.primaryHex);

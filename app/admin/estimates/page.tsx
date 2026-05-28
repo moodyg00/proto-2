@@ -1,13 +1,7 @@
 import React from 'react';
-import { PagePlaceholder } from '../../../src/components/ui/PagePlaceholder';
+import { RecordIndexPage } from '@/src/components/admin/RecordIndexPage';
+import { ESTIMATES_CONFIG } from '@/src/components/admin/record-index-config';
 
 export default function Page() {
-  return (
-    <PagePlaceholder
-      title="Estimates"
-      description="Estimates and quotes."
-      group="Operations"
-      source="app/Filament/Resources/EstimateResource.php"
-    />
-  );
+  return <RecordIndexPage config={ESTIMATES_CONFIG} />;
 }

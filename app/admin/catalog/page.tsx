@@ -1,13 +1,7 @@
 import React from 'react';
-import { PagePlaceholder } from '../../../src/components/ui/PagePlaceholder';
+import { RecordIndexPage } from '@/src/components/admin/RecordIndexPage';
+import { CATALOG_CONFIG } from '@/src/components/admin/record-index-config';
 
 export default function Page() {
-  return (
-    <PagePlaceholder
-      title="Catalog"
-      description="Inventory and product catalog."
-      group="Accounting"
-      source="app/Filament/Resources/CatalogResource.php"
-    />
-  );
+  return <RecordIndexPage config={CATALOG_CONFIG} />;
 }
