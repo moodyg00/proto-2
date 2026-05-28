@@ -70,19 +70,11 @@ export default function AdminDashboard() {
 
           {loading && <div className="text-sm text-gray-400">Loading tasks…</div>}
 
-          {!loading && recentTasks.length === 0 && (
-            <div className="text-sm text-gray-500">
-              No tasks yet. Click the button on the right to have an agent surface work.
-            </div>
-          )}
+          {!loading && recentTasks.length === 0 && <div className="text-sm text-gray-500">No tasks yet.</div>}
 
           <div className="space-y-2">
             {recentTasks.map((t) => (
-              <Link
-                key={t.id}
-                href="/admin/tasks"
-                className="flex items-center justify-between p-3 rounded-lg border hover:bg-[var(--muted)]"
-              >
+              <Link key={t.id} href="/admin/tasks" className="flex items-center justify-between p-3 rounded-lg border hover:bg-[var(--muted)]">
                 <div className="font-medium">{t.title}</div>
                 <div className="flex items-center gap-2">
                   <StatusBadge status={t.priority} kind="priority" />
@@ -97,50 +89,12 @@ export default function AdminDashboard() {
           <div className="font-semibold mb-2 flex items-center gap-2">
             <Brain className="w-5 h-5" /> Agent Interface
           </div>
-          <p className="text-sm text-gray-500 flex-1">
-            Agents act as department heads. They emit Tasks for anything that needs human judgment or irreversible action.
-            All decisions are logged to per-agent memory.
-          </p>
-          <button
-            onClick={async () => {
-              await fetch('/api/agent-demo', { method: 'POST' });
-              window.location.href = '/admin/tasks';
-            }}
-            className="btn btn-primary w-full mt-4"
-          >
-            Ask Agent to Surface Work
-          </button>
-          <div className="text-[10px] text-gray-400 mt-2 text-center">
-            Demo mode works without API keys. Full LLM support when OPENAI_API_KEY is set.
-          </div>
+          <p className="text-sm text-gray-500 flex-1">Agents act as department heads.</p>
+          <button onClick={async () => { await fetch('/api/agent-demo', { method: 'POST' }); window.location.href = '/admin/tasks'; }} className="btn btn-primary w-full mt-4">Ask Agent to Surface Work</button>
         </div>
       </div>
 
-      <div>
-        <div className="text-sm font-medium text-gray-500 mb-3 px-1">Jump to modules</div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {[
-            { label: 'Tasks', href: '/admin/tasks', icon: CheckSquare },
-            { label: 'Operations', href: '/admin/operations', icon: Briefcase },
-            { label: 'CRM', href: '/admin/crm', icon: Users },
-            { label: 'Accounting', href: '/admin/accounting', icon: DollarSign },
-            { label: 'Banking', href: '/admin/banking', icon: DollarSign },
-            { label: 'AI & Agents', href: '/admin/ai', icon: Brain },
-          ].map((m, i) => {
-            const Icon = m.icon;
-            return (
-              <Link key={i} href={m.href} className="card p-4 flex items-center gap-3 hover:border-[var(--primary)] transition-colors">
-                <Icon className="w-5 h-5 text-[var(--primary)]" />
-                <span className="font-medium">{m.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="text-xs text-gray-400 pt-4 border-t">
-        Proto-2 • Complete application layer • All changes are persisted to AgentMemory (L0–L3) • Ready for COSS, public site, and deeper resources.
-      </div>
+      <div className="text-xs text-gray-400 pt-4 border-t">Proto-2 • Complete application layer</div>
     </div>
   );
 }
