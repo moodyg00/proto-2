@@ -4,11 +4,23 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { AdminSidebar } from '../../components/admin/AdminSidebar';
 import { Menu, X, User, LogOut, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../../src/providers/theme-provider';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
+  const { palette, setPalette } = useTheme();
+
+  const isDark = palette === 'monochrome';
+
+  const toggleDarkMode = () => {
+    if (isDark) {
+      setPalette('default');
+    } else {
+      setPalette('monochrome');
+    }
+    setUserMenuOpen(false);
+  };
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--background)' }}>
@@ -42,7 +54,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Settings
             </Link>
 
-            {/* User avatar + dropdown */}
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -70,12 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                   <div className="py-1">
                     <button
-                      onClick={() => {
-                        const html = document.documentElement;
-                        html.classList.toggle('dark');
-                        setIsDark(!isDark);
-                        setUserMenuOpen(false);
-                      }}
+                      onClick={toggleDarkMode}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-[var(--muted)] transition-colors"
                     >
                       {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
