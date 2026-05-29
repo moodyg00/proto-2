@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pill } from './Pill';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 
 /**
  * PagePlaceholder
@@ -29,8 +30,8 @@ export function PagePlaceholder({ title, description, source, group, children }:
       <header className="space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-          {group && <Pill tone="neutral">{group}</Pill>}
-          <Pill tone="info">placeholder</Pill>
+          {group && <Badge variant="outline">{group}</Badge>}
+          <Badge variant="info">placeholder</Badge>
         </div>
         {description && (
           <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
@@ -39,7 +40,7 @@ export function PagePlaceholder({ title, description, source, group, children }:
         )}
       </header>
 
-      <div className="card p-6">
+      <Card className="p-6">
         {children ?? (
           <div className="space-y-2">
             <div className="text-sm font-medium">Coming soon</div>
@@ -54,7 +55,7 @@ export function PagePlaceholder({ title, description, source, group, children }:
             )}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

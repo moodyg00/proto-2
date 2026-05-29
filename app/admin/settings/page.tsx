@@ -5,9 +5,11 @@
  */
 
 import React, { useState } from 'react';
-import { Pill } from '../../../src/components/ui/Pill';
 import { ThemingPanel } from '../../../src/components/settings/ThemingPanel';
 import { SettingsCategoryPanel } from '../../../src/components/settings/SettingsCategoryPanel';
+import { Badge } from '../../../components/ui/badge';
+import { Button } from '../../../components/ui/button';
+import { Card } from '../../../components/ui/card';
 
 type TabId = 'theming' | 'business' | 'operations' | 'customer_relations' | 'user_preferences' | 'advanced';
 
@@ -67,7 +69,7 @@ export default function SettingsPage() {
       <header className="space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-          <Pill tone="neutral">Administration</Pill>
+          <Badge variant="outline">Administration</Badge>
         </div>
         <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
           Configure brand, modules, and theming. Mirrors Proto-1 Filament <code>SettingResource</code>.
@@ -78,10 +80,11 @@ export default function SettingsPage() {
         {TABS.map((tab) => {
           const isOpen = active === tab.id;
           return (
-            <div key={tab.id} className="card overflow-hidden">
-              <button
+            <Card key={tab.id} className="overflow-hidden">
+              <Button
                 onClick={() => toggleTab(tab.id)}
-                className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors hover:bg-[var(--muted)]"
+                variant="ghost"
+                className="h-auto w-full justify-between rounded-none px-5 py-4 text-left"
                 style={{
                   background: isOpen ? 'var(--primary-soft)' : 'var(--card)',
                   color: isOpen ? 'var(--primary)' : 'var(--foreground)',
@@ -92,7 +95,7 @@ export default function SettingsPage() {
                   <div className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{tab.description}</div>
                 </div>
                 <div className="text-xl font-light">{isOpen ? '−' : '+'}</div>
-              </button>
+              </Button>
 
               {isOpen && (
                 <div className="p-6 border-t" style={{ borderColor: 'var(--border)' }}>
@@ -113,7 +116,7 @@ export default function SettingsPage() {
                   )}
                 </div>
               )}
-            </div>
+            </Card>
           );
         })}
       </div>

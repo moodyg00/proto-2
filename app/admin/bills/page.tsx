@@ -6,6 +6,11 @@ import React, { useState } from 'react';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { StatusBadge } from '../../../src/components/admin/StatusBadge';
+import { Badge } from '../../../components/ui/badge';
+import { Button } from '../../../components/ui/button';
+import { Card } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 
 type BillStatus = 'draft' | 'pending' | 'paid' | 'overdue';
 
@@ -56,62 +61,61 @@ export default function BillsPage() {
           Bills
         </div>
         <div className="flex gap-3">
-          <button onClick={() => toast('Export bills CSV (demo)')} className="btn btn-secondary">Export</button>
-          <button onClick={() => toast.success('Marked selected bills for payment (demo)')} className="btn btn-primary">Queue Payment</button>
+          <Button variant="secondary" onClick={() => toast('Export bills CSV (demo)')}>Export</Button>
+          <Button onClick={() => toast.success('Marked selected bills for payment (demo)')}>Queue Payment</Button>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-3 items-center">
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 absolute left-4 top-3.5 text-[var(--muted-foreground)]" />
-          <input
+          <Input
             type="text"
             placeholder="Search vendors or bill description..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="input pl-11"
+            className="pl-11"
           />
         </div>
         <div className="flex gap-2">
           {(['all', 'draft', 'pending', 'paid', 'overdue'] as const).map((value) => (
-            <button
+            <Button
               key={value}
               onClick={() => setFilter(value)}
-              className={`btn text-sm ${filter === value ? 'btn-primary' : 'btn-secondary'}`}
+              variant={filter === value ? 'default' : 'secondary'}
+              size="sm"
             >
               {value === 'all' ? 'All' : value.charAt(0).toUpperCase() + value.slice(1)}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
-      <div className="card p-0 overflow-hidden">
+      <Card className="p-0 overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <div className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em]" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
-            All Records
-          </div>
+          <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">All Records</Badge>
           <div className="text-xs text-[var(--muted-foreground)]">{filtered.length} bills</div>
         </div>
 
-        <table className="table">
-          <thead>
-            <tr>
-              <th className="w-40">Vendor</th>
-              <th>Description</th>
-              <th className="w-32">Due Date</th>
-              <th className="w-32 text-right">Amount</th>
-              <th className="w-28">Status</th>
-              <th className="w-24 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-40">Vendor</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead className="w-32">Due Date</TableHead>
+              <TableHead className="w-32 text-right">Amount</TableHead>
+              <TableHead className="w-28">Status</TableHead>
+              <TableHead className="w-24 text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {paginated.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-12 text-center text-[var(--muted-foreground)]">No bills match your filters.</td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={6} className="p-12 text-center text-[var(--muted-foreground)]">No bills match your filters.</TableCell>
+              </TableRow>
             )}
             {paginated.map((bill) => (
-              <tr
+              <TableRow
                 key={bill.id}
                 className="hover:bg-[var(--muted)]/50 group cursor-pointer"
                 onClick={() => router.push(`/admin/bills/${bill.id}`)}
@@ -123,35 +127,35 @@ export default function BillsPage() {
                 }}
                 tabIndex={0}
               >
-                <td className="font-medium"><Link href={`/admin/bills/${bill.id}`} className="underline-offset-4 hover:underline">{bill.vendor}</Link></td>
-                <td>
+                <TableCell className="font-medium"><Link href={`/admin/bills/${bill.id}`} className="underline-offset-4 hover:underline">{bill.vendor}</Link></TableCell>
+                <TableCell>
                   <div className="text-sm">{bill.description}</div>
                   <div className="text-xs text-[var(--muted-foreground)]">{bill.id}</div>
-                </td>
-                <td className="font-mono text-sm text-[var(--muted-foreground)]">{new Date(bill.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
-                <td className="text-right font-medium tabular-nums">${bill.amount.toLocaleString()}</td>
-                <td><StatusBadge status={bill.status} /></td>
-                <td className="text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Link href={`/admin/bills/${bill.id}`} className="btn btn-secondary text-xs px-3 py-1">
-                    View
+                </TableCell>
+                <TableCell className="font-mono text-sm text-[var(--muted-foreground)]">{new Date(bill.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</TableCell>
+                <TableCell className="text-right font-medium tabular-nums">${bill.amount.toLocaleString()}</TableCell>
+                <TableCell><StatusBadge status={bill.status} /></TableCell>
+                <TableCell className="text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Link href={`/admin/bills/${bill.id}`}>
+                    <Button variant="secondary" size="xs">View</Button>
                   </Link>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
         <div className="flex items-center justify-between px-6 py-4 border-t text-sm">
           <div className="text-[var(--muted-foreground)]">
             Showing {filtered.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length}
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="btn btn-secondary px-3 py-1 disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
+            <Button variant="secondary" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}><ChevronLeft className="w-4 h-4" /></Button>
             <span className="px-3 text-[var(--muted-foreground)]">Page {currentPage} of {totalPages}</span>
-            <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="btn btn-secondary px-3 py-1 disabled:opacity-50"><ChevronRight className="w-4 h-4" /></button>
+            <Button variant="secondary" size="sm" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}><ChevronRight className="w-4 h-4" /></Button>
           </div>
         </div>
-      </div>
+      </Card>
 
       <div className="text-xs text-[var(--muted-foreground)]">COSS UI CardFrame • payment queue sync enabled</div>
     </div>

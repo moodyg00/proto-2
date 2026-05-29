@@ -6,6 +6,11 @@ import React, { useState } from 'react';
 import { StatusBadge } from '../../../src/components/admin/StatusBadge';
 import { ArrowUpRight, ArrowDownRight, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { Badge } from '../../../components/ui/badge';
+import { Button } from '../../../components/ui/button';
+import { Card } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 
 interface Transaction {
   id: string;
@@ -69,69 +74,67 @@ export default function BankTransactionsPage() {
           Bank Transactions
         </div>
         <div className="flex gap-3">
-          <button onClick={() => toast('Export CSV (demo)')} className="btn btn-secondary">Export</button>
-          <button onClick={() => toast.success('Reconciled 8 transactions')} className="btn btn-primary">Reconcile All</button>
+          <Button variant="secondary" onClick={() => toast('Export CSV (demo)')}>Export</Button>
+          <Button onClick={() => toast.success('Reconciled 8 transactions')}>Reconcile All</Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card p-5">
+        <Card className="p-5">
           <div className="text-xs text-[var(--muted-foreground)]">Net for period</div>
           <div className="text-3xl font-semibold mt-1 tabular-nums">${(totalIncome - totalExpense).toLocaleString()}</div>
           <div className="text-xs text-emerald-600 mt-1">+12% from last week</div>
-        </div>
-        <div className="card p-5 flex items-center justify-between">
+        </Card>
+        <Card className="p-5 flex items-center justify-between">
           <div>
             <div className="text-xs text-[var(--muted-foreground)]">Income</div>
             <div className="text-2xl font-semibold text-emerald-600 tabular-nums mt-1">+${totalIncome.toLocaleString()}</div>
           </div>
           <ArrowUpRight className="w-8 h-8 text-emerald-600" />
-        </div>
-        <div className="card p-5 flex items-center justify-between">
+        </Card>
+        <Card className="p-5 flex items-center justify-between">
           <div>
             <div className="text-xs text-[var(--muted-foreground)]">Expenses</div>
             <div className="text-2xl font-semibold text-rose-600 tabular-nums mt-1">-${totalExpense.toLocaleString()}</div>
           </div>
           <ArrowDownRight className="w-8 h-8 text-rose-600" />
-        </div>
+        </Card>
       </div>
 
       <div className="flex flex-col md:flex-row gap-3 items-center">
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 absolute left-4 top-3.5 text-[var(--muted-foreground)]" />
-          <input type="text" placeholder="Search transactions or counterparties..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-11" />
+          <Input type="text" placeholder="Search transactions or counterparties..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-11" />
         </div>
         <div className="flex gap-2">
           {(['all', 'income', 'expense', 'pending'] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)} className={`btn text-sm ${filter === f ? 'btn-primary' : 'btn-secondary'}`}>{f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}</button>
+            <Button key={f} size="sm" variant={filter === f ? 'default' : 'secondary'} onClick={() => setFilter(f)}>{f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}</Button>
           ))}
         </div>
       </div>
 
       {/* COSS UI CardFrame with card-style table */}
-      <div className="card p-0 overflow-hidden">
+      <Card className="p-0 overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <div className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em]" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
-            All Records
-          </div>
+          <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">All Records</Badge>
           <div className="text-xs text-[var(--muted-foreground)]">{filtered.length} transactions</div>
         </div>
 
-        <table className="table">
-          <thead>
-            <tr>
-              <th className="w-28">Date</th>
-              <th className="w-12"></th>
-              <th>Transaction</th>
-              <th className="text-right w-32">Amount</th>
-              <th className="w-28">Status</th>
-              <th className="w-24 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginated.length === 0 && <tr><td colSpan={6} className="p-12 text-center text-[var(--muted-foreground)]">No transactions match your filters.</td></tr>}
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-28">Date</TableHead>
+              <TableHead className="w-12"></TableHead>
+              <TableHead>Transaction</TableHead>
+              <TableHead className="text-right w-32">Amount</TableHead>
+              <TableHead className="w-28">Status</TableHead>
+              <TableHead className="w-24 text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginated.length === 0 && <TableRow><TableCell colSpan={6} className="p-12 text-center text-[var(--muted-foreground)]">No transactions match your filters.</TableCell></TableRow>}
             {paginated.map((tx) => (
-              <tr
+              <TableRow
                 key={tx.id}
                 className="hover:bg-[var(--muted)]/50 group cursor-pointer"
                 onClick={() => router.push(`/admin/bank-transactions/${tx.id}`)}
@@ -143,29 +146,29 @@ export default function BankTransactionsPage() {
                 }}
                 tabIndex={0}
               >
-                <td className="font-mono text-sm text-[var(--muted-foreground)]">{new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
-                <td><div className="w-8 h-8 rounded-full bg-[var(--primary-soft)] flex items-center justify-center text-xs font-semibold text-[var(--primary)]">{tx.avatar}</div></td>
-                <td>
+                <TableCell className="font-mono text-sm text-[var(--muted-foreground)]">{new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</TableCell>
+                <TableCell><div className="w-8 h-8 rounded-full bg-[var(--primary-soft)] flex items-center justify-center text-xs font-semibold text-[var(--primary)]">{tx.avatar}</div></TableCell>
+                <TableCell>
                   <div className="font-medium"><Link href={`/admin/bank-transactions/${tx.id}`} className="underline-offset-4 hover:underline">{tx.name}</Link></div>
                   <div className="text-xs text-[var(--muted-foreground)] line-clamp-1">{tx.description}</div>
-                </td>
-                <td className={`text-right font-medium tabular-nums ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>{tx.type === 'income' ? '+' : ''}${Math.abs(tx.amount).toLocaleString()}</td>
-                <td><StatusBadge status={tx.status} /></td>
-                <td className="text-right opacity-0 group-hover:opacity-100 transition-opacity"><Link href={`/admin/bank-transactions/${tx.id}`} className="btn btn-secondary text-xs px-3 py-1">View</Link></td>
-              </tr>
+                </TableCell>
+                <TableCell className={`text-right font-medium tabular-nums ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>{tx.type === 'income' ? '+' : ''}${Math.abs(tx.amount).toLocaleString()}</TableCell>
+                <TableCell><StatusBadge status={tx.status} /></TableCell>
+                <TableCell className="text-right opacity-0 group-hover:opacity-100 transition-opacity"><Link href={`/admin/bank-transactions/${tx.id}`}><Button variant="secondary" size="xs">View</Button></Link></TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
         <div className="flex items-center justify-between px-6 py-4 border-t text-sm">
           <div className="text-[var(--muted-foreground)]">Showing {startIndex + 1}–{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length}</div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="btn btn-secondary px-3 py-1 disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
+            <Button variant="secondary" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}><ChevronLeft className="w-4 h-4" /></Button>
             <span className="px-3 text-[var(--muted-foreground)]">Page {currentPage} of {totalPages}</span>
-            <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="btn btn-secondary px-3 py-1 disabled:opacity-50"><ChevronRight className="w-4 h-4" /></button>
+            <Button variant="secondary" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}><ChevronRight className="w-4 h-4" /></Button>
           </div>
         </div>
-      </div>
+      </Card>
 
       <div className="text-xs text-[var(--muted-foreground)]">COSS UI CardFrame • Agent auto-categorized 94%</div>
     </div>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pill } from '../ui/Pill';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 
 /**
  * SettingsCategoryPanel
@@ -29,13 +30,13 @@ export function SettingsCategoryPanel({ title, description, modules }: Props) {
         </p>
       </div>
 
-      <div className="card p-5 space-y-3">
+      <Card className="p-5 space-y-3">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
             Backed by <code>settings</code> rows with module
           </span>
           {modules.map((m) => (
-            <Pill key={m} tone="neutral">{m}</Pill>
+            <Badge key={m} variant="outline">{m}</Badge>
           ))}
         </div>
 
@@ -47,7 +48,7 @@ export function SettingsCategoryPanel({ title, description, modules }: Props) {
             wiring this panel to it requires a server action plus a JSON validator per module.
           </p>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

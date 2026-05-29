@@ -23,7 +23,11 @@ import {
   type PaletteName,
   type SurfaceToken,
 } from '../../providers/theme-provider';
-import { Pill } from '../ui/Pill';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export function ThemingPanel() {
   const {
@@ -90,7 +94,7 @@ export function ThemingPanel() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium">{preset.label}</span>
-                  {active && <Pill tone="accent">selected</Pill>}
+                  {active && <Badge variant="info">selected</Badge>}
                 </div>
                 <p className="text-xs mb-3" style={{ color: 'var(--muted-foreground)' }}>{preset.description}</p>
                 <div className="grid grid-cols-2 gap-2">
@@ -179,17 +183,17 @@ export function ThemingPanel() {
           <label className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
             Custom hex
           </label>
-          <input
+          <Input
             type="text"
             placeholder="#7c3aed"
             value={hexDraft}
             onChange={(e) => setHexDraft(e.target.value)}
-            className="input"
+            className="w-[140px]"
             style={{ width: 140, fontFamily: 'ui-monospace, monospace' }}
           />
-          <button
+          <Button
             type="button"
-            className="btn btn-secondary"
+            variant="secondary"
             onClick={() => {
               if (/^#?[0-9a-fA-F]{6}$/.test(hexDraft.trim())) {
                 const h = hexDraft.trim().startsWith('#') ? hexDraft.trim() : `#${hexDraft.trim()}`;
@@ -200,18 +204,18 @@ export function ThemingPanel() {
             }}
           >
             Apply
-          </button>
+          </Button>
           {primaryHex && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary"
+              variant="secondary"
               onClick={() => {
                 setPrimaryHex(null);
                 setHexDraft('');
               }}
             >
               Clear
-            </button>
+            </Button>
           )}
         </div>
       </section>
@@ -242,7 +246,7 @@ export function ThemingPanel() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="font-medium">{p.label}</div>
-                  {active && <Pill tone="accent">selected</Pill>}
+                  {active && <Badge variant="info">selected</Badge>}
                 </div>
                 <p className="text-xs mb-3" style={{ color: 'var(--muted-foreground)' }}>
                   {p.description}
@@ -266,54 +270,54 @@ export function ThemingPanel() {
           </p>
         </div>
 
-        <div className="card p-5 space-y-4">
+        <Card className="p-5 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Pill tone="neutral">Neutral</Pill>
-            <Pill tone="info">Info</Pill>
-            <Pill tone="success">Paid</Pill>
-            <Pill tone="warning">Pending</Pill>
-            <Pill tone="danger">Failed</Pill>
-            <Pill tone="accent">Featured</Pill>
+            <Badge variant="outline">Neutral</Badge>
+            <Badge variant="info">Info</Badge>
+            <Badge variant="success">Paid</Badge>
+            <Badge variant="warning">Pending</Badge>
+            <Badge variant="error">Failed</Badge>
+            <Badge>Featured</Badge>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button className="btn btn-primary">Primary action</button>
-            <button className="btn btn-secondary">Secondary</button>
-            <button className="btn btn-danger">Destructive</button>
+            <Button>Primary action</Button>
+            <Button variant="secondary">Secondary</Button>
+            <Button variant="destructive">Destructive</Button>
           </div>
-          <div className="card p-3">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Customer</th>
-                  <th>Status</th>
-                  <th>Tag</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Acme Co.</td>
-                  <td><Pill tone="success">Paid</Pill></td>
-                  <td><Pill tone="accent">VIP</Pill></td>
-                </tr>
-                <tr>
-                  <td>Globex</td>
-                  <td><Pill tone="warning">Pending</Pill></td>
-                  <td><Pill tone="info">New</Pill></td>
-                </tr>
-                <tr>
-                  <td>Initech</td>
-                  <td><Pill tone="danger">Overdue</Pill></td>
-                  <td><Pill tone="neutral">Standard</Pill></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+          <Card className="p-3">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Tag</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Acme Co.</TableCell>
+                  <TableCell><Badge variant="success">Paid</Badge></TableCell>
+                  <TableCell><Badge>VIP</Badge></TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Globex</TableCell>
+                  <TableCell><Badge variant="warning">Pending</Badge></TableCell>
+                  <TableCell><Badge variant="info">New</Badge></TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Initech</TableCell>
+                  <TableCell><Badge variant="error">Overdue</Badge></TableCell>
+                  <TableCell><Badge variant="outline">Standard</Badge></TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Card>
+        </Card>
 
         <div className="flex justify-end">
-          <button type="button" className="btn btn-secondary" onClick={reset}>
+          <Button type="button" variant="secondary" onClick={reset}>
             Reset to defaults
-          </button>
+          </Button>
         </div>
       </section>
     </div>
@@ -328,11 +332,11 @@ export function ThemingPanel() {
 function PaletteSwatchRow({ palette }: { palette: PaletteName }) {
   return (
     <div data-palette-preview={palette} className="flex flex-wrap gap-1.5" style={paletteVars(palette)}>
-      <Pill tone="info">Info</Pill>
-      <Pill tone="success">OK</Pill>
-      <Pill tone="warning">Warn</Pill>
-      <Pill tone="danger">Err</Pill>
-      <Pill tone="accent">Tag</Pill>
+      <Badge variant="info">Info</Badge>
+      <Badge variant="success">OK</Badge>
+      <Badge variant="warning">Warn</Badge>
+      <Badge variant="error">Err</Badge>
+      <Badge>Tag</Badge>
     </div>
   );
 }
@@ -414,7 +418,7 @@ function SurfacePicker({
             if (/^#[0-9a-fA-F]{0,6}$/.test(next)) onChange(token, next.length === 7 ? next : value);
           }}
           readOnly
-          className="input"
+          className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
           style={{ fontFamily: 'ui-monospace, monospace' }}
         />
       </div>

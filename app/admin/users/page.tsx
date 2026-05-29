@@ -6,6 +6,11 @@ import React, { useState } from 'react';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { StatusBadge } from '../../../src/components/admin/StatusBadge';
+import { Badge } from '../../../components/ui/badge';
+import { Button } from '../../../components/ui/button';
+import { Card } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 
 type UserStatus = 'active' | 'pending' | 'blocked';
 type UserRole = 'admin' | 'manager' | 'operator';
@@ -57,61 +62,60 @@ export default function UsersPage() {
           Users
         </div>
         <div className="flex gap-3">
-          <button onClick={() => toast('Export users list (demo)')} className="btn btn-secondary">Export</button>
-          <button onClick={() => toast.success('Invite link copied (demo)')} className="btn btn-primary">Invite User</button>
+          <Button variant="secondary" onClick={() => toast('Export users list (demo)')}>Export</Button>
+          <Button onClick={() => toast.success('Invite link copied (demo)')}>Invite User</Button>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-3 items-center">
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 absolute left-4 top-3.5 text-[var(--muted-foreground)]" />
-          <input
+          <Input
             type="text"
             placeholder="Search users by name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="input pl-11"
+            className="pl-11"
           />
         </div>
         <div className="flex gap-2">
           {(['all', 'admin', 'manager', 'operator'] as const).map((value) => (
-            <button
+            <Button
               key={value}
               onClick={() => setRoleFilter(value)}
-              className={`btn text-sm ${roleFilter === value ? 'btn-primary' : 'btn-secondary'}`}
+              variant={roleFilter === value ? 'default' : 'secondary'}
+              size="sm"
             >
               {value === 'all' ? 'All' : value.charAt(0).toUpperCase() + value.slice(1)}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
-      <div className="card p-0 overflow-hidden">
+      <Card className="p-0 overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <div className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em]" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
-            All Records
-          </div>
+          <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">All Records</Badge>
           <div className="text-xs text-[var(--muted-foreground)]">{filtered.length} users</div>
         </div>
 
-        <table className="table">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th className="w-28">Role</th>
-              <th className="w-28">Status</th>
-              <th className="w-28">Last Seen</th>
-              <th className="w-24 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>User</TableHead>
+              <TableHead className="w-28">Role</TableHead>
+              <TableHead className="w-28">Status</TableHead>
+              <TableHead className="w-28">Last Seen</TableHead>
+              <TableHead className="w-24 text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {paginated.length === 0 && (
-              <tr>
-                <td colSpan={5} className="p-12 text-center text-[var(--muted-foreground)]">No users match your filters.</td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={5} className="p-12 text-center text-[var(--muted-foreground)]">No users match your filters.</TableCell>
+              </TableRow>
             )}
             {paginated.map((user) => (
-              <tr
+              <TableRow
                 key={user.id}
                 className="hover:bg-[var(--muted)]/50 group cursor-pointer"
                 onClick={() => router.push(`/admin/users/${user.id}`)}
@@ -123,34 +127,34 @@ export default function UsersPage() {
                 }}
                 tabIndex={0}
               >
-                <td>
+                <TableCell>
                   <div className="font-medium"><Link href={`/admin/users/${user.id}`} className="underline-offset-4 hover:underline">{user.name}</Link></div>
                   <div className="text-xs text-[var(--muted-foreground)]">{user.email}</div>
-                </td>
-                <td className="capitalize">{user.role}</td>
-                <td><StatusBadge status={user.status} /></td>
-                <td className="text-sm text-[var(--muted-foreground)]">{user.lastSeen}</td>
-                <td className="text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Link href={`/admin/users/${user.id}`} className="btn btn-secondary text-xs px-3 py-1">
-                    View
+                </TableCell>
+                <TableCell className="capitalize">{user.role}</TableCell>
+                <TableCell><StatusBadge status={user.status} /></TableCell>
+                <TableCell className="text-sm text-[var(--muted-foreground)]">{user.lastSeen}</TableCell>
+                <TableCell className="text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Link href={`/admin/users/${user.id}`}>
+                    <Button variant="secondary" size="xs">View</Button>
                   </Link>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
         <div className="flex items-center justify-between px-6 py-4 border-t text-sm">
           <div className="text-[var(--muted-foreground)]">
             Showing {filtered.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length}
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="btn btn-secondary px-3 py-1 disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
+            <Button variant="secondary" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}><ChevronLeft className="w-4 h-4" /></Button>
             <span className="px-3 text-[var(--muted-foreground)]">Page {currentPage} of {totalPages}</span>
-            <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="btn btn-secondary px-3 py-1 disabled:opacity-50"><ChevronRight className="w-4 h-4" /></button>
+            <Button variant="secondary" size="sm" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}><ChevronRight className="w-4 h-4" /></Button>
           </div>
         </div>
-      </div>
+      </Card>
 
       <div className="text-xs text-[var(--muted-foreground)]">COSS UI CardFrame • role sync + invite controls ready</div>
     </div>
