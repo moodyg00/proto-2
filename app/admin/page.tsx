@@ -11,7 +11,7 @@ const KPI_GROUPS = [
     color: '#2563eb',
     description: 'Open work, schedule pressure, and delivery readiness.',
     metrics: [
-      { label: 'Active jobs', value: '18', note: '4 starting today' },
+      { label: 'Active work orders', value: '18', note: '4 starting today' },
       { label: 'Scheduled visits', value: '27', note: 'Next 7 days' },
       { label: 'Open estimates', value: '12', note: '3 awaiting signoff' },
       { label: 'Invoice-ready work', value: '9', note: 'Ready to review' },

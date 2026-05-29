@@ -259,7 +259,7 @@ export const ORGANIZATIONS_CONFIG: RecordIndexConfig = {
       tags: ['Commercial', 'Multi-site'],
       meta: [
         { label: 'Owner', value: 'Janelle R.' },
-        { label: 'Open jobs', value: '4' },
+        { label: 'Open work orders', value: '4' },
       ],
     },
     {

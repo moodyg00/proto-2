@@ -552,7 +552,7 @@ export function SchedulingStudio() {
               }}
             />
           ))}
-          <Link href="/admin/schedulings/booking-links" className="rounded-full border px-3 py-1.5 text-xs font-medium" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
+          <Link href="/admin/calendar/booking-links" className="rounded-full border px-3 py-1.5 text-xs font-medium" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
             Open booking links studio
           </Link>
         </div>
@@ -598,7 +598,7 @@ export function SchedulingStudio() {
             <div className="text-xs uppercase tracking-[0.18em]" style={{ color: 'var(--muted-foreground)' }}>
               Active profile: {selectedPreset.name}
             </div>
-            <Link href="/admin/schedulings/availability" className="text-sm font-medium underline-offset-4 hover:underline">
+            <Link href="/admin/calendar/availability" className="text-sm font-medium underline-offset-4 hover:underline">
               Open detailed availability
             </Link>
           </CardFooter>

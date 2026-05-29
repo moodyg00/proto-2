@@ -32,7 +32,7 @@ const RECORD_INDEX_CONFIG_BY_SECTION = {
   contacts: CONTACTS_CONFIG,
   estimates: ESTIMATES_CONFIG,
   invoices: INVOICES_CONFIG,
-  jobs: WORK_ORDERS_CONFIG,
+  'work-orders': WORK_ORDERS_CONFIG,
   leads: LEADS_CONFIG,
   offerings: OFFERINGS_CONFIG,
   organizations: ORGANIZATIONS_CONFIG,
