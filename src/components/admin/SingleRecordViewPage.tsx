@@ -1,4 +1,10 @@
-import Link from 'next/link';
+'use client';
+
+import * as React from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { RecordField } from '@/src/components/admin/RecordField';
+import { RecordPanel, RecordView } from '@/src/components/admin/RecordView';
 
 type FlatField = {
   path: string;
@@ -50,50 +56,69 @@ export function SingleRecordViewPage({
   record: Record<string, unknown>;
   backHref: string;
 }) {
-  const fields = flattenFields(record);
+  const initialFields = React.useMemo(() => flattenFields(record), [record]);
+  const [fieldValues, setFieldValues] = React.useState<Record<string, string>>(() =>
+    initialFields.reduce<Record<string, string>>((acc, field) => {
+      acc[field.path] = field.value;
+      return acc;
+    }, {}),
+  );
+
+  React.useEffect(() => {
+    setFieldValues(
+      initialFields.reduce<Record<string, string>>((acc, field) => {
+        acc[field.path] = field.value;
+        return acc;
+      }, {}),
+    );
+  }, [initialFields]);
+
+  const overviewFields = initialFields.slice(0, Math.ceil(initialFields.length / 2));
+  const detailFields = initialFields.slice(Math.ceil(initialFields.length / 2));
+
+  function commitField(path: string) {
+    return (nextValue: string) => {
+      setFieldValues((prev) => ({ ...prev, [path]: nextValue }));
+    };
+  }
 
   return (
-    <div className="space-y-6 pb-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.22em]" style={{ borderColor: 'color-mix(in srgb, var(--border) 72%, #111111 28%)', background: 'color-mix(in srgb, var(--card) 84%, #f3efe7 16%)', color: 'var(--muted-foreground)' }}>
+    <RecordView
+      title={recordTitle}
+      subtitle={`Record ID: ${recordId}`}
+      badge={
+        <Badge variant="outline" className="uppercase tracking-[0.22em]">
           {sectionTitle}
-        </div>
-        <Link href={backHref} className="rounded-full border px-3 py-1 text-xs font-medium" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
-          Back to records
-        </Link>
-      </header>
+        </Badge>
+      }
+      backHref={backHref}
+    >
+      <RecordPanel title="Overview" description="Key fields for this record.">
+        {overviewFields.map((field) => (
+          <RecordField
+            key={field.path}
+            label={field.path}
+            value={fieldValues[field.path] ?? field.value}
+            onCommit={commitField(field.path)}
+            readOnly={field.path === 'id'}
+          />
+        ))}
+      </RecordPanel>
 
-      <section className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight" style={{ fontFamily: 'Iowan Old Style, Georgia, serif' }}>{recordTitle}</h1>
-        <div className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em]" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
-          Record ID: {recordId}
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <div className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em]" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
-          Schema Fields
-        </div>
-
-        <div className="overflow-hidden rounded-[1.25rem] border" style={{ borderColor: 'var(--border)' }}>
-          <table className="table">
-            <thead>
-              <tr>
-                <th className="w-1/3">Field</th>
-                <th>Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fields.map((field) => (
-                <tr key={field.path}>
-                  <td className="font-mono text-xs" style={{ color: 'var(--muted-foreground)' }}>{field.path}</td>
-                  <td className="text-sm">{field.value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
+      <RecordPanel title="Details" description="Additional schema fields and metadata.">
+        {detailFields.length === 0 ? (
+          <div className="text-sm text-muted-foreground">No additional fields.</div>
+        ) : (
+          detailFields.map((field) => (
+            <RecordField
+              key={field.path}
+              label={field.path}
+              value={fieldValues[field.path] ?? field.value}
+              onCommit={commitField(field.path)}
+            />
+          ))
+        )}
+      </RecordPanel>
+    </RecordView>
   );
 }
