@@ -1,11 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { Check, Pencil, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Field, FieldItem, FieldLabel } from '@/components/ui/field';
+import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 
 type RecordFieldProps = {
   label: string;
@@ -53,22 +54,25 @@ export function RecordField({
     }
   }
 
-  function cancel() {
+  function enterEdit() {
+    if (!canEdit) return;
     setDraft(value);
-    setIsEditing(false);
+    setIsEditing(true);
   }
 
   return (
-    <Field className="rounded-xl border p-3">
-      <FieldLabel className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{label}</FieldLabel>
+    <Field className="w-full gap-2 rounded-lg bg-card px-3 py-2.5">
+      <div className="flex w-full min-w-0 items-center gap-3">
+        <FieldLabel className="min-w-36 shrink-0 text-sm text-foreground sm:min-w-40">
+          {label}:
+        </FieldLabel>
 
-      {isEditing ? (
-        <div className="space-y-2 w-full">
-          <FieldItem className="w-full">
-            <Input
-              value={draft}
+        {isEditing ? (
+          <InputGroup className="w-full min-w-0 flex-1">
+            <InputGroupInput
+              autoFocus
+              aria-label={label}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder={placeholder}
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   event.preventDefault();
@@ -76,33 +80,38 @@ export function RecordField({
                 }
                 if (event.key === 'Escape') {
                   event.preventDefault();
-                  cancel();
+                  setDraft(value);
+                  setIsEditing(false);
                 }
               }}
-              autoFocus
+              placeholder={placeholder}
+              size="sm"
+              value={draft}
             />
-          </FieldItem>
-          <div className="flex items-center gap-2">
-            <Button size="xs" onClick={() => void save()} loading={isSaving}>
-              <Check className="size-3.5" /> Save
-            </Button>
-            <Button size="xs" variant="outline" onClick={cancel} disabled={isSaving}>
-              <X className="size-3.5" /> Cancel
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex items-start justify-between gap-3 w-full">
-          <div className="min-h-8 flex items-center rounded-lg border border-input bg-background px-3 text-sm leading-5 w-full">
-            {value || '—'}
-          </div>
-          {canEdit ? (
-            <Button size="xs" variant="outline" onClick={() => setIsEditing(true)}>
-              <Pencil className="size-3.5" /> Edit
-            </Button>
-          ) : null}
-        </div>
-      )}
+            <InputGroupAddon align="inline-end">
+              <Button
+                aria-label={`Save ${label}`}
+                loading={isSaving}
+                onClick={() => void save()}
+                size="icon-xs"
+                variant="ghost"
+              >
+                <Check className="size-3.5" />
+              </Button>
+            </InputGroupAddon>
+          </InputGroup>
+        ) : (
+          <Input
+            aria-readonly="true"
+            className="w-full min-w-0 flex-1"
+            onClick={enterEdit}
+            readOnly
+            size="sm"
+            type="text"
+            value={value || '—'}
+          />
+        )}
+      </div>
     </Field>
   );
 }

@@ -6,11 +6,24 @@
  *
  * docs: https://pris.ly/d/config-datasource
  */
-import 'dotenv/config';
+import fs from 'node:fs';
+import path from 'node:path';
+
+import dotenv from 'dotenv';
 import { defineConfig } from 'prisma/config';
+
+for (const envPath of [path.resolve(process.cwd(), '.env.local'), path.resolve(process.cwd(), '.env')]) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    break;
+  }
+}
 
 export default defineConfig({
   schema: './prisma/schema.prisma',
+  migrations: {
+    seed: 'node prisma/seed.mjs',
+  },
   datasource: {
     url: process.env.DATABASE_URL ?? '',
   },

@@ -93,31 +93,18 @@ export function SingleRecordViewPage({
       }
       backHref={backHref}
     >
-      <RecordPanel title="Overview" description="Key fields for this record.">
-        {overviewFields.map((field) => (
-          <RecordField
-            key={field.path}
-            label={field.path}
-            value={fieldValues[field.path] ?? field.value}
-            onCommit={commitField(field.path)}
-            readOnly={field.path === 'id'}
-          />
-        ))}
-      </RecordPanel>
-
-      <RecordPanel title="Details" description="Additional schema fields and metadata.">
-        {detailFields.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No additional fields.</div>
-        ) : (
-          detailFields.map((field) => (
+      <RecordPanel title="Record Details" description="Click any field to edit it inline and save with the check button.">
+        <div className="space-y-2">
+          {[...overviewFields, ...detailFields].map((field) => (
             <RecordField
               key={field.path}
               label={field.path}
               value={fieldValues[field.path] ?? field.value}
               onCommit={commitField(field.path)}
+              readOnly={field.path === 'id'}
             />
-          ))
-        )}
+          ))}
+        </div>
       </RecordPanel>
     </RecordView>
   );
