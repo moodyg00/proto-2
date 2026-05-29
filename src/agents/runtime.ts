@@ -1,4 +1,4 @@
-import { generateText, tool } from 'ai';
+import { generateText, tool, stepCountIs } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { createAgentMemory } from '../core/memory/agent-memory';
@@ -67,12 +67,12 @@ export class AgentRuntime {
       ...allMemoryTools,
       emit_task: tool({
         description: 'Create a new Task for the human admin or another agent to handle.',
-        parameters: z.object({
+        inputSchema: z.object({
           title: z.string(),
           description: z.string().optional(),
           priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
         }),
-        async execute(args) {
+        execute: async (args) => {
           return ctx.emitTask({
             title: args.title,
             description: args.description,
@@ -88,13 +88,13 @@ export class AgentRuntime {
         system: `You are ${agentId}, a department-head level agent. Use memory tools heavily. Emit tasks for anything that needs human input or irreversible action. Be concise and decisive.`,
         prompt,
         tools: allTools,
-        maxSteps: opts?.maxSteps ?? 6,
+        stopWhen: stepCountIs(opts?.maxSteps ?? 6),
       });
 
       await ctx.memory.handleTurnCommitted({
         input: prompt,
         output: result.text,
-        toolsUsed: Object.keys(result.toolCalls || {}),
+        toolsUsed: result.toolCalls?.map((c: any) => c.toolName) || [],
       });
 
       return { text: result.text, toolCalls: result.toolCalls };

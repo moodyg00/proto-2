@@ -5,7 +5,7 @@ import { z } from 'zod';
 const ActionSchema = z.object({
   taskId: z.string(),
   type: z.enum(['approve', 'reject', 'provide_input', 'record_decision', 'defer', 'escalate', 'mark_complete']),
-  payload: z.record(z.any()).optional(),
+  payload: z.record(z.string(), z.any()).optional(),
   note: z.string().optional(),
 });
 

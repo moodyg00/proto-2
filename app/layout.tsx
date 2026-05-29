@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import './globals.css';
+// Use pre-built CSS for reliable production builds (especially on shared hosting)
+import './globals.built.css';
 import { Toaster } from 'sonner';
 import { ThemeProvider, themeBootstrapScript } from '../src/providers/theme-provider';
 
