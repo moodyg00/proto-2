@@ -86,7 +86,21 @@ function serializeValue(value: unknown): unknown {
   }
 
   if (value && typeof value === 'object') {
-    if ((value as { constructor?: { name?: string } }).constructor?.name === 'Decimal') {
+    const constructorName = (value as { constructor?: { name?: string } }).constructor?.name?.toLowerCase();
+    if (constructorName?.includes('decimal')) {
+      return (value as { toString: () => string }).toString();
+    }
+
+    if (typeof (value as { toJSON?: () => unknown }).toJSON === 'function' && constructorName) {
+      // Guard against other Prisma runtime wrappers that should be plain JSON in Client Components.
+      const jsonValue = (value as { toJSON: () => unknown }).toJSON();
+      if (jsonValue !== value) {
+        return serializeValue(jsonValue);
+      }
+    }
+
+    if (typeof (value as { toString?: () => string }).toString === 'function' && Array.isArray((value as { d?: unknown }).d)) {
+      // Decimal.js-like fallback shape (s/e/d internals) used by some Prisma runtime builds.
       return value.toString();
     }
 
