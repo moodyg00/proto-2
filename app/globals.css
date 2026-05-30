@@ -25,12 +25,14 @@
 
 :root {
   --light-background: #ffffff;
+  --light-foreground: #0f172a;
   --light-surface: #f8fafc;
   --dark-background: #000000;
+  --dark-foreground: #f8fafc;
   --dark-surface: #0f172a;
 
   --background: var(--light-background);
-  --foreground: #0f172a;
+  --foreground: var(--light-foreground);
   --card: var(--light-surface);
   --card-foreground: #0f172a;
   --border: color-mix(in srgb, var(--light-surface) 74%, #cbd5e1 26%);
@@ -47,11 +49,20 @@
   --primary-foreground: #ffffff;
   --primary-soft: #e2e8f0;
   --ring: #0f172a;
+
+  --secondary: #e2e8f0;
+  --secondary-foreground: #0f172a;
+  --overlay-bg: rgba(15, 23, 42, 0.08);
+  --overlay-border: rgba(15, 23, 42, 0.16);
+
+  /* Bank card: black in light mode */
+  --bank-card-bg: #000000;
+  --card-text: #ffffff;
 }
 
 html.dark {
   --background: var(--dark-background);
-  --foreground: #f8fafc;
+  --foreground: var(--dark-foreground);
   --card: var(--dark-surface);
   --card-foreground: #f8fafc;
   --border: color-mix(in srgb, var(--dark-surface) 84%, #e2e8f0 16%);
@@ -61,6 +72,10 @@ html.dark {
   --accent: color-mix(in srgb, var(--dark-surface) 88%, var(--primary) 12%);
   --accent-foreground: #f8fafc;
   --primary-foreground: #ffffff;
+
+  /* Bank card: white in dark mode */
+  --bank-card-bg: #ffffff;
+  --card-text: #000000;
 }
 
 /* =========================================================================
@@ -147,6 +162,16 @@ html:not([data-palette]) {
   --pill-danger-bg: #fee2e2;  --pill-danger-fg: #991b1b;  --pill-danger-border: #fecaca;
   /* accent */
   --pill-accent-bg: #ede9fe;  --pill-accent-fg: #5b21b6;  --pill-accent-border: #ddd6fe;
+  --secondary: #e2e8f0;
+  --secondary-foreground: #0f172a;
+  --info: #2563eb;
+  --info-foreground: #1e40af;
+  --success: #10b981;
+  --success-foreground: #065f46;
+  --warning: #f59e0b;
+  --warning-foreground: #92400e;
+  --overlay-bg: rgba(37, 99, 235, 0.08);
+  --overlay-border: rgba(37, 99, 235, 0.2);
 }
 
 html[data-palette='vivid'] {
@@ -156,6 +181,16 @@ html[data-palette='vivid'] {
   --pill-warning-bg: #f59e0b; --pill-warning-fg: #1c1917; --pill-warning-border: #d97706;
   --pill-danger-bg: #ef4444;  --pill-danger-fg: #ffffff;  --pill-danger-border: #dc2626;
   --pill-accent-bg: #d946ef;  --pill-accent-fg: #ffffff;  --pill-accent-border: #c026d3;
+  --secondary: #14b8a6;
+  --secondary-foreground: #042f2e;
+  --info: #06b6d4;
+  --info-foreground: #083344;
+  --success: #84cc16;
+  --success-foreground: #365314;
+  --warning: #f97316;
+  --warning-foreground: #7c2d12;
+  --overlay-bg: rgba(217, 70, 239, 0.12);
+  --overlay-border: rgba(217, 70, 239, 0.28);
 }
 
 html[data-palette='pastel'] {
@@ -165,6 +200,16 @@ html[data-palette='pastel'] {
   --pill-warning-bg: #fef9c3; --pill-warning-fg: #854d0e; --pill-warning-border: #fef08a;
   --pill-danger-bg: #ffe4e6;  --pill-danger-fg: #9f1239;  --pill-danger-border: #fecdd3;
   --pill-accent-bg: #fae8ff;  --pill-accent-fg: #6b21a8;  --pill-accent-border: #f5d0fe;
+  --secondary: #dbeafe;
+  --secondary-foreground: #1e3a8a;
+  --info: #7dd3fc;
+  --info-foreground: #0c4a6e;
+  --success: #86efac;
+  --success-foreground: #166534;
+  --warning: #fcd34d;
+  --warning-foreground: #854d0e;
+  --overlay-bg: rgba(125, 211, 252, 0.18);
+  --overlay-border: rgba(125, 211, 252, 0.32);
 }
 
 html[data-palette='monochrome'] {
@@ -174,6 +219,35 @@ html[data-palette='monochrome'] {
   --pill-warning-bg: #94a3b8; --pill-warning-fg: #f8fafc; --pill-warning-border: #64748b;
   --pill-danger-bg: #475569;  --pill-danger-fg: #f8fafc;  --pill-danger-border: #334155;
   --pill-accent-bg: #1e293b;  --pill-accent-fg: #f8fafc;  --pill-accent-border: #0f172a;
+  --secondary: #cbd5e1;
+  --secondary-foreground: #0f172a;
+  --info: #64748b;
+  --info-foreground: #0f172a;
+  --success: #94a3b8;
+  --success-foreground: #0f172a;
+  --warning: #475569;
+  --warning-foreground: #f8fafc;
+  --overlay-bg: rgba(15, 23, 42, 0.14);
+  --overlay-border: rgba(15, 23, 42, 0.28);
+}
+
+html[data-palette='sunset'] {
+  --pill-neutral-bg: #fff7ed; --pill-neutral-fg: #9a3412; --pill-neutral-border: #fed7aa;
+  --pill-info-bg: #ffedd5;    --pill-info-fg: #9a3412;    --pill-info-border: #fdba74;
+  --pill-success-bg: #dcfce7; --pill-success-fg: #166534; --pill-success-border: #86efac;
+  --pill-warning-bg: #fef3c7; --pill-warning-fg: #92400e; --pill-warning-border: #fcd34d;
+  --pill-danger-bg: #ffe4e6;  --pill-danger-fg: #be123c;  --pill-danger-border: #fda4af;
+  --pill-accent-bg: #ffedd5;  --pill-accent-fg: #c2410c;  --pill-accent-border: #fb923c;
+  --secondary: #fed7aa;
+  --secondary-foreground: #9a3412;
+  --info: #fb923c;
+  --info-foreground: #9a3412;
+  --success: #22c55e;
+  --success-foreground: #14532d;
+  --warning: #f59e0b;
+  --warning-foreground: #78350f;
+  --overlay-bg: rgba(251, 146, 60, 0.12);
+  --overlay-border: rgba(251, 146, 60, 0.28);
 }
 
 body {

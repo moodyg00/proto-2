@@ -7,6 +7,7 @@ import { Filter, Search, SlidersHorizontal } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/src/lib/utils';
 import { getAdminCreateHref, isAdminCreateSection, isAdminDbSection } from '@/src/lib/admin-record-form-config';
@@ -236,12 +237,17 @@ export function RecordIndexPage({ config }: { config: RecordIndexConfig }) {
               {loadError}
             </div>
           ) : filtered.length === 0 ? (
-            <div
-              className="border px-5 py-10 text-center text-sm"
-              style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+            <Empty
+              className="rounded-xl border py-14"
+              style={{ borderColor: 'var(--border)' }}
             >
-              {useDbRecords ? 'No records' : config.emptyMessage}
-            </div>
+              <EmptyHeader>
+                <EmptyTitle>No Records</EmptyTitle>
+                <EmptyDescription>
+                  {useDbRecords ? 'No records are available yet.' : config.emptyMessage}
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <div className={config.gridClassName}>
               {filtered.map((record) => {
@@ -252,18 +258,18 @@ export function RecordIndexPage({ config }: { config: RecordIndexConfig }) {
                   <Link
                     key={record.id}
                     href={detailHref}
-                    className="group block rounded-[1.65rem] border p-4 transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+                    className="group block rounded-xl border p-4 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
                     style={{
-                      borderColor: 'color-mix(in srgb, var(--border) 82%, transparent 18%)',
-                      background: `linear-gradient(180deg, color-mix(in srgb, ${accent} 5%, var(--card) 95%), var(--card))`,
-                      boxShadow: '0 18px 44px rgba(17, 17, 17, 0.05)',
+                      borderColor: 'color-mix(in srgb, var(--border) 84%, ${accent} 16%)',
+                      background: 'var(--card)',
+                      boxShadow: '0 10px 24px rgba(17, 17, 17, 0.04)',
                     }}
                   >
                     <article>
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1">
-                          <div className="text-lg font-semibold leading-tight">{record.name}</div>
-                          <div className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{record.subtitle}</div>
+                          <div className="text-[15px] font-semibold leading-tight">{record.name}</div>
+                          <div className="text-sm leading-6" style={{ color: 'var(--muted-foreground)' }}>{record.subtitle}</div>
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <div className="h-3 w-3 rounded-full" style={{ background: accent }} />
@@ -275,11 +281,11 @@ export function RecordIndexPage({ config }: { config: RecordIndexConfig }) {
 
                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
                         {record.meta.map((item) => (
-                          <div key={`${record.id}-${item.label}`} className="rounded-[1rem] border px-3 py-2" style={{ borderColor: 'color-mix(in srgb, var(--border) 78%, transparent 22%)', background: 'color-mix(in srgb, var(--card) 92%, #f3efe7 8%)' }}>
-                            <div className="text-[11px] font-medium uppercase tracking-[0.16em]" style={{ color: 'var(--muted-foreground)' }}>
+                          <div key={`${record.id}-${item.label}`} className="rounded-lg border px-3 py-2" style={{ borderColor: 'color-mix(in srgb, var(--border) 80%, transparent 20%)', background: 'color-mix(in srgb, var(--card) 96%, #f3efe7 4%)' }}>
+                            <div className="text-[10px] font-medium uppercase tracking-[0.16em]" style={{ color: 'var(--muted-foreground)' }}>
                               {item.label}
                             </div>
-                            <div className="mt-1 text-sm font-medium">{item.value}</div>
+                            <div className="mt-1 text-sm font-medium leading-6">{item.value}</div>
                           </div>
                         ))}
                       </div>
@@ -294,16 +300,13 @@ export function RecordIndexPage({ config }: { config: RecordIndexConfig }) {
                         </div>
                         {record.metric ? (
                           <div className="text-right">
-                            <div className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--muted-foreground)' }}>
-                              Open record
-                            </div>
-                            <div className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--muted-foreground)' }}>
+                            <div className="text-[10px] uppercase tracking-[0.18em]" style={{ color: 'var(--muted-foreground)' }}>
                               Snapshot
                             </div>
-                            <div className="text-sm font-semibold">{record.metric}</div>
+                            <div className="text-sm font-semibold leading-6">{record.metric}</div>
                           </div>
                         ) : (
-                          <div className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--muted-foreground)' }}>
+                          <div className="text-[10px] uppercase tracking-[0.18em]" style={{ color: 'var(--muted-foreground)' }}>
                             Open record
                           </div>
                         )}

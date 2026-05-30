@@ -16,6 +16,7 @@ import {
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Card,
   CardContent,
@@ -286,6 +287,36 @@ function weekDates(offset: number) {
   });
 }
 
+function monthFirstDate(offset: number) {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() + offset, 1);
+}
+
+function formatMonthLabel(offset: number) {
+  return monthFirstDate(offset).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+function monthGridDates(offset: number) {
+  const first = monthFirstDate(offset);
+  const startDayIndex = (first.getDay() + 6) % 7; // Monday-based index
+  const gridStart = new Date(first);
+  gridStart.setDate(first.getDate() - startDayIndex);
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart);
+    date.setDate(gridStart.getDate() + index);
+    return date;
+  });
+}
+
+function isSameDate(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return (
     <div
@@ -496,114 +527,107 @@ function BookingLinksSummary() {
 }
 
 export function SchedulingStudio() {
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [monthOffset, setMonthOffset] = useState(0);
   const [weekOffset, setWeekOffset] = useState(0);
-  const [selectedPresetId, setSelectedPresetId] = useState(PRESETS[0].id);
-  const [activeOverlayIds, setActiveOverlayIds] = useState<OverlayId[]>(['travel', 'lunch']);
-  const [activeReminderIds, setActiveReminderIds] = useState<ReminderId[]>(['sms-24h', 'sms-2h']);
-
-  const selectedPreset = PRESETS.find((preset) => preset.id === selectedPresetId) ?? PRESETS[0];
-  const activeOverlays = OVERLAYS.filter((overlay) => activeOverlayIds.includes(overlay.id));
+  const monthDates = useMemo(() => monthGridDates(monthOffset), [monthOffset]);
+  const activeMonthDate = monthFirstDate(monthOffset);
+  const today = new Date();
 
   return (
     <div className="space-y-6 pb-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+      <header className="flex items-center">
         <SectionEyebrow>
           <CalendarDays className="h-3.5 w-3.5" />
           Scheduling Studio
         </SectionEyebrow>
-        <Button variant="outline" size="sm" onClick={() => toast.success('Scheduling sync queued for the live booking engine.') }>
-          <Sparkles className="h-4 w-4" />
-          Publish schedule
-        </Button>
       </header>
 
-      <section className="space-y-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <SectionEyebrow>
-            <CalendarDays className="h-3.5 w-3.5" />
-            Week rhythm
-          </SectionEyebrow>
-          {PRESETS.map((preset) => (
-            <TogglePill
-              key={preset.id}
-              active={selectedPresetId === preset.id}
-              label={preset.name}
-              onClick={() => setSelectedPresetId(preset.id)}
-            />
-          ))}
-        </div>
+      <Card className="overflow-hidden rounded-2xl border-0">
+        <CardContent className="p-6">
+          <Tabs defaultValue="month" className="gap-4">
+            <div className="flex items-center gap-3">
+              <TabsList>
+                <TabsTrigger value="month">Month</TabsTrigger>
+                <TabsTrigger value="week">Week</TabsTrigger>
+              </TabsList>
+            </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <SectionEyebrow>
-            <Link2 className="h-3.5 w-3.5" />
-            Reminder stack
-          </SectionEyebrow>
-          {REMINDERS.map((reminder) => (
-            <TogglePill
-              key={reminder.id}
-              active={activeReminderIds.includes(reminder.id)}
-              label={reminder.label}
-              onClick={() => {
-                setActiveReminderIds((current) =>
-                  current.includes(reminder.id)
-                    ? current.filter((id) => id !== reminder.id)
-                    : [...current, reminder.id]
-                );
-              }}
-            />
-          ))}
-          <Link href="/admin/calendar/booking-links" className="rounded-full border px-3 py-1.5 text-xs font-medium" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
-            Open booking links studio
-          </Link>
-        </div>
+            <TabsContent value="month" className="mt-0">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-2 border-b pb-3" style={{ borderColor: 'var(--border)' }}>
+                  <Button variant="outline" size="icon-sm" onClick={() => setMonthOffset((value) => value - 1)}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <div className="text-lg font-semibold tracking-tight">{formatMonthLabel(monthOffset)}</div>
+                  <Button variant="outline" size="icon-sm" onClick={() => setMonthOffset((value) => value + 1)}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
 
-        <Card className="overflow-hidden rounded-[2rem] border-0 shadow-none">
-          <CardHeader className="pb-4 pt-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-xl" style={{ fontFamily: 'Iowan Old Style, Georgia, serif' }}>Week preview</CardTitle>
-                <CardDescription>Five-day planning board with booking holds, overlays, and open slots.</CardDescription>
+                <div className="overflow-hidden rounded-xl border" style={{ borderColor: 'var(--border)' }}>
+                  <div className="grid grid-cols-7 border-b" style={{ borderColor: 'var(--border)' }}>
+                    {WEEK_DAYS.map((day) => (
+                      <div
+                        key={day.id}
+                        className="py-2 text-center text-[11px] font-medium uppercase tracking-[0.14em]"
+                        style={{ color: 'var(--muted-foreground)', background: 'color-mix(in srgb, var(--card) 90%, #f3efe7 10%)' }}
+                      >
+                        {day.short}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-7">
+                    {monthDates.map((date) => {
+                      const isCurrentMonth = date.getMonth() === activeMonthDate.getMonth();
+                      const isSelected = isSameDate(date, selectedDate);
+                      const isToday = isSameDate(date, today);
+
+                      return (
+                        <button
+                          key={date.toISOString()}
+                          type="button"
+                          onClick={() => setSelectedDate(date)}
+                          className="h-24 border-r border-b p-2 text-left transition-colors last:border-r-0"
+                          style={{
+                            borderColor: 'var(--border)',
+                            background: isSelected ? 'color-mix(in srgb, var(--foreground) 10%, var(--card) 90%)' : 'var(--card)',
+                            color: isCurrentMonth ? 'var(--foreground)' : 'var(--muted-foreground)',
+                          }}
+                        >
+                          <span
+                            className="inline-flex h-7 min-w-7 items-center justify-center rounded-full px-1 text-sm font-medium tabular-nums"
+                            style={{
+                              background: isSelected ? 'var(--foreground)' : isToday ? 'color-mix(in srgb, var(--foreground) 12%, transparent)' : 'transparent',
+                              color: isSelected ? 'var(--background)' : 'inherit',
+                            }}
+                          >
+                            {date.getDate()}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
+            </TabsContent>
+
+            <TabsContent value="week" className="mt-0 space-y-4">
+              <div className="flex items-center justify-end gap-2">
                 <Button variant="outline" size="icon-sm" onClick={() => setWeekOffset((value) => value - 1)}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <div className="min-w-32 text-center text-sm font-medium">{formatWeekLabel(weekOffset)}</div>
+                <div className="min-w-36 text-center text-sm font-medium">{formatWeekLabel(weekOffset)}</div>
                 <Button variant="outline" size="icon-sm" onClick={() => setWeekOffset((value) => value + 1)}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-6">
-            <div className="flex flex-wrap gap-2">
-              {OVERLAYS.map((overlay) => (
-                <TogglePill
-                  key={overlay.id}
-                  active={activeOverlayIds.includes(overlay.id)}
-                  label={overlay.name}
-                  onClick={() => {
-                    setActiveOverlayIds((current) =>
-                      current.includes(overlay.id)
-                        ? current.filter((id) => id !== overlay.id)
-                        : [...current, overlay.id]
-                    );
-                  }}
-                />
-              ))}
-            </div>
-            <CalendarGrid preset={selectedPreset} activeOverlays={activeOverlays} weekOffset={weekOffset} />
-          </CardContent>
-          <CardFooter className="justify-between pt-4">
-            <div className="text-xs uppercase tracking-[0.18em]" style={{ color: 'var(--muted-foreground)' }}>
-              Active profile: {selectedPreset.name}
-            </div>
-            <Link href="/admin/calendar/availability" className="text-sm font-medium underline-offset-4 hover:underline">
-              Open detailed availability
-            </Link>
-          </CardFooter>
-        </Card>
-      </section>
+              <CalendarGrid preset={PRESETS[0]} activeOverlays={[]} weekOffset={weekOffset} />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }

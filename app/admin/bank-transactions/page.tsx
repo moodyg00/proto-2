@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '../../../components/ui/empty';
 import { Input } from '../../../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 
@@ -132,7 +133,18 @@ export default function BankTransactionsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginated.length === 0 && <TableRow><TableCell colSpan={6} className="p-12 text-center text-[var(--muted-foreground)]">No transactions match your filters.</TableCell></TableRow>}
+            {paginated.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="p-0">
+                  <Empty className="py-12 md:py-14">
+                    <EmptyHeader>
+                      <EmptyTitle>No Transactions Found</EmptyTitle>
+                      <EmptyDescription>No transactions match your filters.</EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                </TableCell>
+              </TableRow>
+            )}
             {paginated.map((tx) => (
               <TableRow
                 key={tx.id}

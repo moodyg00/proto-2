@@ -1,41 +1,35 @@
 'use client';
 
 /**
- * ThemingPanel — settings UI for the two-layer theme system.
+ * ThemingPanel — compact settings UI for the two-layer theme system.
  *
- * 1) Main color scheme: 8 named presets + custom hex
- * 2) Secondary palette: 4 named palettes that re-color pills/badges atomically
+ * - 4 base color pickers (light/dark bg + fg)
+ * - Primary color selector (presets + custom hex)
+ * - 5 palette options (buttons/badges/warnings/overlays)
  *
  * Both write through ThemeProvider, which:
  *   - updates CSS variables on <html>
- *   - persists to localStorage (server persistence will be added when the
- *     `settings` Prisma model lands; the shape is `module='ui_preferences'`,
- *     `key='theme'`, `value=ThemeState`).
+ *   - persists to localStorage.
  */
 
 import React, { useState } from 'react';
 import {
   PRIMARY_PRESETS,
   PALETTE_PRESETS,
-  SURFACE_PRESETS,
   useTheme,
   type PrimaryName,
-  type PaletteName,
   type SurfaceToken,
 } from '../../providers/theme-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export function ThemingPanel() {
   const {
     lightBackground,
-    lightSurface,
+    lightForeground,
     darkBackground,
-    darkSurface,
-    surfacePreset,
+    darkForeground,
+    surfacePreset: _surfacePreset,
     primary,
     primaryHex,
     palette,
@@ -43,193 +37,85 @@ export function ThemingPanel() {
     setPrimaryHex,
     setPalette,
     setSurfaceToken,
-    applySurfacePreset,
+    applySurfacePreset: _applySurfacePreset,
     reset,
   } = useTheme();
   const [hexDraft, setHexDraft] = useState(primaryHex ?? '');
-  const [surfaceDrafts, setSurfaceDrafts] = useState<Record<SurfaceToken, string>>({
-    lightBackground,
-    lightSurface,
-    darkBackground,
-    darkSurface,
-  });
 
-  const syncSurfaceDraft = (token: SurfaceToken, value: string) => {
-    setSurfaceDrafts((drafts) => ({ ...drafts, [token]: value }));
-    setSurfaceToken(token, value);
-  };
+  const syncToken = (token: SurfaceToken, value: string) => setSurfaceToken(token, value);
 
   return (
-    <div className="space-y-8">
-      <section className="space-y-4">
-        <div className="space-y-1">
-          <h3 className="text-base font-semibold">Interface surfaces</h3>
-          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-            Light and dark mode now have their own background and surface tones. Start from a preset, then fine-tune.
-          </p>
-        </div>
+    <div className="space-y-6">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-          {SURFACE_PRESETS.map((preset) => {
-            const active = surfacePreset === preset.name;
-            return (
-              <button
-                key={preset.name}
-                type="button"
-                onClick={() => {
-                  applySurfacePreset(preset.name);
-                  setSurfaceDrafts({
-                    lightBackground: preset.lightBackground,
-                    lightSurface: preset.lightSurface,
-                    darkBackground: preset.darkBackground,
-                    darkSurface: preset.darkSurface,
-                  });
-                }}
-                className="rounded-xl p-4 text-left transition-colors"
-                style={{
-                  background: 'var(--card)',
-                  border: `1px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
-                  boxShadow: active ? '0 0 0 2px var(--primary-soft)' : undefined,
-                }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{preset.label}</span>
-                  {active && <Badge variant="info">selected</Badge>}
-                </div>
-                <p className="text-xs mb-3" style={{ color: 'var(--muted-foreground)' }}>{preset.description}</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {[preset.lightBackground, preset.lightSurface, preset.darkBackground, preset.darkSurface].map((color) => (
-                    <span
-                      key={color}
-                      className="h-9 rounded-lg border"
-                      style={{ background: color, borderColor: 'var(--border)' }}
-                    />
-                  ))}
-                </div>
-              </button>
-            );
-          })}
+      {/* ── SURFACES ────────────────────────────────────────────── */}
+      <section className="space-y-2">
+        <div className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'var(--muted-foreground)' }}>
+          Surfaces
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:grid-cols-4">
-          <SurfacePicker
-            label="Light background"
-            token="lightBackground"
-            value={surfaceDrafts.lightBackground}
-            options={['#ffffff', '#f8fafc', '#fffdf7', '#f5fbfb']}
-            onChange={syncSurfaceDraft}
-          />
-          <SurfacePicker
-            label="Light surface"
-            token="lightSurface"
-            value={surfaceDrafts.lightSurface}
-            options={['#f8fafc', '#eef2f7', '#f7f1e6', '#e6f1f2']}
-            onChange={syncSurfaceDraft}
-          />
-          <SurfacePicker
-            label="Dark background"
-            token="darkBackground"
-            value={surfaceDrafts.darkBackground}
-            options={['#000000', '#020617', '#0b0f0c', '#081214']}
-            onChange={syncSurfaceDraft}
-          />
-          <SurfacePicker
-            label="Dark surface"
-            token="darkSurface"
-            value={surfaceDrafts.darkSurface}
-            options={['#0f172a', '#111827', '#16211b', '#102126']}
-            onChange={syncSurfaceDraft}
-          />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <ColorSwatch label="Light background" value={lightBackground} onChange={(v) => syncToken('lightBackground', v)} />
+          <ColorSwatch label="Light foreground" value={lightForeground} onChange={(v) => syncToken('lightForeground', v)} />
+          <ColorSwatch label="Dark background"  value={darkBackground}  onChange={(v) => syncToken('darkBackground', v)} />
+          <ColorSwatch label="Dark foreground"  value={darkForeground}  onChange={(v) => syncToken('darkForeground', v)} />
         </div>
       </section>
 
-      {/* MAIN COLOR ----------------------------------------------------- */}
-      <section className="space-y-3">
-        <div className="space-y-1">
-          <h3 className="text-base font-semibold">Main color scheme</h3>
-          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-            Used by buttons, links, focus rings, and the active sidebar item.
-          </p>
+      {/* ── PRIMARY COLOR ───────────────────────────────────────── */}
+      <section className="space-y-2">
+        <div className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'var(--muted-foreground)' }}>
+          Primary color
         </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {PRIMARY_PRESETS.map((p) => {
             const active = !primaryHex && primary === p.name;
             return (
               <button
                 key={p.name}
                 type="button"
-                onClick={() => {
-                  setPrimary(p.name);
-                  setHexDraft('');
-                }}
-                className="flex flex-col items-center justify-center rounded-lg p-3 gap-1.5 transition-colors"
+                title={p.label}
+                onClick={() => { setPrimary(p.name); setHexDraft(''); }}
+                className="flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110"
                 style={{
-                  background: active ? p.soft : 'var(--card)',
-                  border: `1px solid ${active ? p.hex : 'var(--border)'}`,
+                  background: p.hex,
+                  outline: active ? '2px solid var(--foreground)' : '2px solid transparent',
+                  outlineOffset: 2,
+                  boxShadow: '0 1px 3px rgb(0 0 0/0.18)',
                 }}
-              >
-                <span
-                  className="w-6 h-6 rounded-full"
-                  style={{ background: p.hex, boxShadow: '0 1px 2px rgb(0 0 0 / 0.15)' }}
-                />
-                <span className="text-xs font-medium">{p.label}</span>
-              </button>
+                aria-label={p.label}
+                aria-pressed={active}
+              />
             );
           })}
-        </div>
-
-        <div className="flex items-center gap-3 pt-2">
-          <label className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-            Custom hex
+          {/* custom hex inline picker */}
+          <label className="flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+            <input
+              type="color"
+              value={primaryHex ?? '#000000'}
+              onChange={(e) => { setHexDraft(e.target.value); setPrimaryHex(e.target.value); }}
+              className="h-5 w-5 cursor-pointer rounded-full border-0 bg-transparent p-0"
+              title="Custom primary"
+            />
+            <span className="font-mono text-xs" style={{ color: 'var(--muted-foreground)' }}>
+              {primaryHex ?? 'custom'}
+            </span>
+            {primaryHex && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); setPrimaryHex(null); setHexDraft(''); }}
+                className="ml-0.5 text-sm leading-none"
+                style={{ color: 'var(--muted-foreground)' }}
+              >×</button>
+            )}
           </label>
-          <Input
-            type="text"
-            placeholder="#7c3aed"
-            value={hexDraft}
-            onChange={(e) => setHexDraft(e.target.value)}
-            className="w-[140px]"
-            style={{ width: 140, fontFamily: 'ui-monospace, monospace' }}
-          />
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              if (/^#?[0-9a-fA-F]{6}$/.test(hexDraft.trim())) {
-                const h = hexDraft.trim().startsWith('#') ? hexDraft.trim() : `#${hexDraft.trim()}`;
-                setPrimaryHex(h);
-              } else if (hexDraft.trim() === '') {
-                setPrimaryHex(null);
-              }
-            }}
-          >
-            Apply
-          </Button>
-          {primaryHex && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setPrimaryHex(null);
-                setHexDraft('');
-              }}
-            >
-              Clear
-            </Button>
-          )}
         </div>
       </section>
 
-      {/* SECONDARY PALETTE --------------------------------------------- */}
-      <section className="space-y-3">
-        <div className="space-y-1">
-          <h3 className="text-base font-semibold">Secondary palette</h3>
-          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-            Defines pill and badge colors across the app. Pick a vibe.
-          </p>
+      {/* ── PALETTE ─────────────────────────────────────────────── */}
+      <section className="space-y-2">
+        <div className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'var(--muted-foreground)' }}>
+          Palette — buttons / badges / warnings / overlays
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="flex flex-wrap gap-2">
           {PALETTE_PRESETS.map((p) => {
             const active = palette === p.name;
             return (
@@ -237,210 +123,72 @@ export function ThemingPanel() {
                 key={p.name}
                 type="button"
                 onClick={() => setPalette(p.name)}
-                className="text-left rounded-lg p-4 transition-colors"
+                className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
                 style={{
-                  background: 'var(--card)',
-                  border: `1px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
-                  boxShadow: active ? '0 0 0 2px var(--primary-soft)' : undefined,
+                  borderColor: active ? 'var(--foreground)' : 'var(--border)',
+                  background: active ? 'color-mix(in srgb, var(--foreground) 8%, var(--card) 92%)' : 'var(--card)',
                 }}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="font-medium">{p.label}</div>
-                  {active && <Badge variant="info">selected</Badge>}
-                </div>
-                <p className="text-xs mb-3" style={{ color: 'var(--muted-foreground)' }}>
-                  {p.description}
-                </p>
-                {/* live preview row, rendered inside a scoped element so the
-                    palette swap is visible per card. We use inline data-palette
-                    on the host element to scope the swatch preview locally. */}
-                <PaletteSwatchRow palette={p.name} />
+                <PaletteSwatches paletteName={p.name} />
+                {p.label}
+                {active && <Badge variant="outline" size="sm">active</Badge>}
               </button>
             );
           })}
         </div>
       </section>
 
-      {/* LIVE PREVIEW -------------------------------------------------- */}
-      <section className="space-y-3">
-        <div className="space-y-1">
-          <h3 className="text-base font-semibold">Live preview</h3>
-          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-            Reflects the current global selection. Save state persists locally.
-          </p>
-        </div>
-
-        <Card className="p-5 space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">Neutral</Badge>
-            <Badge variant="info">Info</Badge>
-            <Badge variant="success">Paid</Badge>
-            <Badge variant="warning">Pending</Badge>
-            <Badge variant="error">Failed</Badge>
-            <Badge>Featured</Badge>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button>Primary action</Button>
-            <Button variant="secondary">Secondary</Button>
-            <Button variant="destructive">Destructive</Button>
-          </div>
-          <Card className="p-3">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tag</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>Acme Co.</TableCell>
-                  <TableCell><Badge variant="success">Paid</Badge></TableCell>
-                  <TableCell><Badge>VIP</Badge></TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Globex</TableCell>
-                  <TableCell><Badge variant="warning">Pending</Badge></TableCell>
-                  <TableCell><Badge variant="info">New</Badge></TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Initech</TableCell>
-                  <TableCell><Badge variant="error">Overdue</Badge></TableCell>
-                  <TableCell><Badge variant="outline">Standard</Badge></TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </Card>
-        </Card>
-
-        <div className="flex justify-end">
-          <Button type="button" variant="secondary" onClick={reset}>
-            Reset to defaults
-          </Button>
-        </div>
-      </section>
+      <div className="flex justify-end pt-1">
+        <Button type="button" variant="secondary" size="sm" onClick={reset}>
+          Reset to defaults
+        </Button>
+      </div>
     </div>
   );
 }
 
-/**
- * Renders a row of pills inside a scoped element with data-palette set so the
- * row visually previews that palette regardless of the current global palette.
- * Achieved by re-declaring the palette variables on the host via inline styles.
- */
-function PaletteSwatchRow({ palette }: { palette: PaletteName }) {
-  return (
-    <div data-palette-preview={palette} className="flex flex-wrap gap-1.5" style={paletteVars(palette)}>
-      <Badge variant="info">Info</Badge>
-      <Badge variant="success">OK</Badge>
-      <Badge variant="warning">Warn</Badge>
-      <Badge variant="error">Err</Badge>
-      <Badge>Tag</Badge>
-    </div>
-  );
-}
-
-function paletteVars(p: PaletteName): React.CSSProperties {
-  const map: Record<PaletteName, Record<string, string>> = {
-    default: {
-      '--pill-neutral-bg': '#f1f5f9', '--pill-neutral-fg': '#334155', '--pill-neutral-border': '#e2e8f0',
-      '--pill-info-bg': '#dbeafe',    '--pill-info-fg': '#1e40af',    '--pill-info-border': '#bfdbfe',
-      '--pill-success-bg': '#d1fae5', '--pill-success-fg': '#065f46', '--pill-success-border': '#a7f3d0',
-      '--pill-warning-bg': '#fef3c7', '--pill-warning-fg': '#92400e', '--pill-warning-border': '#fde68a',
-      '--pill-danger-bg': '#fee2e2',  '--pill-danger-fg': '#991b1b',  '--pill-danger-border': '#fecaca',
-      '--pill-accent-bg': '#ede9fe',  '--pill-accent-fg': '#5b21b6',  '--pill-accent-border': '#ddd6fe',
-    },
-    vivid: {
-      '--pill-neutral-bg': '#1e293b', '--pill-neutral-fg': '#f8fafc', '--pill-neutral-border': '#334155',
-      '--pill-info-bg': '#06b6d4',    '--pill-info-fg': '#ffffff',    '--pill-info-border': '#0891b2',
-      '--pill-success-bg': '#84cc16', '--pill-success-fg': '#1a2e05', '--pill-success-border': '#65a30d',
-      '--pill-warning-bg': '#f59e0b', '--pill-warning-fg': '#1c1917', '--pill-warning-border': '#d97706',
-      '--pill-danger-bg': '#ef4444',  '--pill-danger-fg': '#ffffff',  '--pill-danger-border': '#dc2626',
-      '--pill-accent-bg': '#d946ef',  '--pill-accent-fg': '#ffffff',  '--pill-accent-border': '#c026d3',
-    },
-    pastel: {
-      '--pill-neutral-bg': '#f8fafc', '--pill-neutral-fg': '#475569', '--pill-neutral-border': '#e2e8f0',
-      '--pill-info-bg': '#e0f2fe',    '--pill-info-fg': '#0c4a6e',    '--pill-info-border': '#bae6fd',
-      '--pill-success-bg': '#dcfce7', '--pill-success-fg': '#166534', '--pill-success-border': '#bbf7d0',
-      '--pill-warning-bg': '#fef9c3', '--pill-warning-fg': '#854d0e', '--pill-warning-border': '#fef08a',
-      '--pill-danger-bg': '#ffe4e6',  '--pill-danger-fg': '#9f1239',  '--pill-danger-border': '#fecdd3',
-      '--pill-accent-bg': '#fae8ff',  '--pill-accent-fg': '#6b21a8',  '--pill-accent-border': '#f5d0fe',
-    },
-    monochrome: {
-      '--pill-neutral-bg': '#f1f5f9', '--pill-neutral-fg': '#0f172a', '--pill-neutral-border': '#cbd5e1',
-      '--pill-info-bg': '#e2e8f0',    '--pill-info-fg': '#0f172a',    '--pill-info-border': '#cbd5e1',
-      '--pill-success-bg': '#cbd5e1', '--pill-success-fg': '#0f172a', '--pill-success-border': '#94a3b8',
-      '--pill-warning-bg': '#94a3b8', '--pill-warning-fg': '#f8fafc', '--pill-warning-border': '#64748b',
-      '--pill-danger-bg': '#475569',  '--pill-danger-fg': '#f8fafc',  '--pill-danger-border': '#334155',
-      '--pill-accent-bg': '#1e293b',  '--pill-accent-fg': '#f8fafc',  '--pill-accent-border': '#0f172a',
-    },
-  };
-  return map[p] as React.CSSProperties;
-}
-
-/* satisfy unused-name linter for type alias used in props only */
-export type { PrimaryName };
-
-function SurfacePicker({
+function ColorSwatch({
   label,
-  token,
   value,
-  options,
   onChange,
 }: {
   label: string;
-  token: SurfaceToken;
   value: string;
-  options: string[];
-  onChange: (token: SurfaceToken, value: string) => void;
+  onChange: (v: string) => void;
 }) {
   return (
-    <div className="rounded-xl border p-4 space-y-3" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
-      <div className="space-y-1">
-        <div className="text-sm font-medium">{label}</div>
-        <div className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{value.toUpperCase()}</div>
+    <label className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-6 w-6 cursor-pointer rounded border-0 bg-transparent p-0"
+      />
+      <div>
+        <div className="text-xs font-medium leading-none">{label}</div>
+        <div className="mt-0.5 font-mono text-[10px]" style={{ color: 'var(--muted-foreground)' }}>{value.toUpperCase()}</div>
       </div>
-
-      <div className="flex items-center gap-3">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(token, e.target.value)}
-          className="h-11 w-11 rounded-lg border p-1 cursor-pointer"
-          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
-        />
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => {
-            const next = e.target.value;
-            if (/^#[0-9a-fA-F]{0,6}$/.test(next)) onChange(token, next.length === 7 ? next : value);
-          }}
-          readOnly
-          className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
-          style={{ fontFamily: 'ui-monospace, monospace' }}
-        />
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {options.map((option) => {
-          const active = option.toLowerCase() === value.toLowerCase();
-          return (
-            <button
-              key={option}
-              type="button"
-              onClick={() => onChange(token, option)}
-              className="h-8 w-8 rounded-full border transition-transform hover:scale-105"
-              style={{
-                background: option,
-                borderColor: active ? 'var(--primary)' : 'var(--border)',
-                boxShadow: active ? '0 0 0 2px var(--primary-soft)' : undefined,
-              }}
-            />
-          );
-        })}
-      </div>
-    </div>
+    </label>
   );
 }
+
+const PALETTE_DOT_COLORS: Record<string, string[]> = {
+  default:    ['#2563eb', '#10b981', '#f59e0b', '#dc2626', '#7c3aed'],
+  vivid:      ['#06b6d4', '#84cc16', '#f97316', '#ef4444', '#d946ef'],
+  pastel:     ['#7dd3fc', '#86efac', '#fcd34d', '#fca5a5', '#d8b4fe'],
+  monochrome: ['#94a3b8', '#cbd5e1', '#64748b', '#475569', '#1e293b'],
+  sunset:     ['#fb923c', '#22c55e', '#f59e0b', '#fda4af', '#fdba74'],
+};
+
+function PaletteSwatches({ paletteName }: { paletteName: string }) {
+  const dots = PALETTE_DOT_COLORS[paletteName] ?? [];
+  return (
+    <span className="flex gap-0.5">
+      {dots.map((color) => (
+        <span key={color} className="inline-block h-3 w-3 rounded-full" style={{ background: color }} />
+      ))}
+    </span>
+  );
+}
+
+export type { PrimaryName };

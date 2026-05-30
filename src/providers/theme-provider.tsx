@@ -47,16 +47,23 @@ export const PRIMARY_PRESETS: { name: PrimaryName; label: string; hex: string; s
   { name: 'slate',   label: 'Slate',   hex: '#0f172a', soft: '#e2e8f0' },
 ];
 
-export type PaletteName = 'default' | 'vivid' | 'pastel' | 'monochrome';
+export type PaletteName = 'default' | 'vivid' | 'pastel' | 'monochrome' | 'sunset';
 
 export type SurfacePresetName = 'pure' | 'slate' | 'cream' | 'ocean';
-export type SurfaceToken = 'lightBackground' | 'lightSurface' | 'darkBackground' | 'darkSurface';
+export type SurfaceToken =
+  | 'lightBackground'
+  | 'lightForeground'
+  | 'lightSurface'
+  | 'darkBackground'
+  | 'darkForeground'
+  | 'darkSurface';
 
 export const PALETTE_PRESETS: { name: PaletteName; label: string; description: string }[] = [
   { name: 'default',    label: 'Default',    description: 'Tailwind weights with saturated semantics.' },
   { name: 'vivid',      label: 'Vivid',      description: 'High-saturation neons for emphasis.' },
   { name: 'pastel',     label: 'Pastel',     description: 'Soft tints for calmer surfaces.' },
   { name: 'monochrome', label: 'Monochrome', description: 'Slate gradient, single accent.' },
+  { name: 'sunset',     label: 'Sunset',     description: 'Warm oranges and coral accents for contrast-heavy UI.' },
 ];
 
 export const SURFACE_PRESETS: Array<{
@@ -113,8 +120,10 @@ export interface ThemeState {
   palette: PaletteName;
   surfacePreset: SurfacePresetName | 'custom';
   lightBackground: string;
+  lightForeground: string;
   lightSurface: string;
   darkBackground: string;
+  darkForeground: string;
   darkSurface: string;
 }
 
@@ -125,8 +134,10 @@ const DEFAULT_THEME: ThemeState = {
   palette: 'default',
   surfacePreset: 'pure',
   lightBackground: '#ffffff',
+  lightForeground: '#0f172a',
   lightSurface: '#f8fafc',
   darkBackground: '#000000',
+  darkForeground: '#f8fafc',
   darkSurface: '#0f172a',
 };
 
@@ -164,8 +175,10 @@ function readStored(): ThemeState | null {
           ? parsed.surfacePreset
           : DEFAULT_THEME.surfacePreset,
       lightBackground: typeof parsed.lightBackground === 'string' ? parsed.lightBackground : DEFAULT_THEME.lightBackground,
+      lightForeground: typeof parsed.lightForeground === 'string' ? parsed.lightForeground : DEFAULT_THEME.lightForeground,
       lightSurface: typeof parsed.lightSurface === 'string' ? parsed.lightSurface : DEFAULT_THEME.lightSurface,
       darkBackground: typeof parsed.darkBackground === 'string' ? parsed.darkBackground : DEFAULT_THEME.darkBackground,
+      darkForeground: typeof parsed.darkForeground === 'string' ? parsed.darkForeground : DEFAULT_THEME.darkForeground,
       darkSurface: typeof parsed.darkSurface === 'string' ? parsed.darkSurface : DEFAULT_THEME.darkSurface,
     };
   } catch {
@@ -191,8 +204,10 @@ function applyToDom(state: ThemeState) {
   html.setAttribute('data-palette', state.palette);
   html.setAttribute('data-surface-preset', state.surfacePreset);
   html.style.setProperty('--light-background', state.lightBackground);
+  html.style.setProperty('--light-foreground', state.lightForeground);
   html.style.setProperty('--light-surface', state.lightSurface);
   html.style.setProperty('--dark-background', state.darkBackground);
+  html.style.setProperty('--dark-foreground', state.darkForeground);
   html.style.setProperty('--dark-surface', state.darkSurface);
 
   // Custom hex wins over named preset.
@@ -301,8 +316,10 @@ export const themeBootstrapScript = `
     if (t.palette) html.setAttribute('data-palette', t.palette);
     if (t.surfacePreset) html.setAttribute('data-surface-preset', t.surfacePreset);
     if (t.lightBackground) html.style.setProperty('--light-background', t.lightBackground);
+    if (t.lightForeground) html.style.setProperty('--light-foreground', t.lightForeground);
     if (t.lightSurface) html.style.setProperty('--light-surface', t.lightSurface);
     if (t.darkBackground) html.style.setProperty('--dark-background', t.darkBackground);
+    if (t.darkForeground) html.style.setProperty('--dark-foreground', t.darkForeground);
     if (t.darkSurface) html.style.setProperty('--dark-surface', t.darkSurface);
     if (t.primaryHex) {
       html.style.setProperty('--primary', t.primaryHex);

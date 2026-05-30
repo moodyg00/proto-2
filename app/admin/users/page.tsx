@@ -9,6 +9,7 @@ import { StatusBadge } from '../../../src/components/admin/StatusBadge';
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '../../../components/ui/empty';
 import { Input } from '../../../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 
@@ -111,7 +112,14 @@ export default function UsersPage() {
           <TableBody>
             {paginated.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="p-12 text-center text-[var(--muted-foreground)]">No users match your filters.</TableCell>
+                <TableCell colSpan={5} className="p-0">
+                  <Empty className="py-12 md:py-14">
+                    <EmptyHeader>
+                      <EmptyTitle>No Users Found</EmptyTitle>
+                      <EmptyDescription>No users match your filters.</EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                </TableCell>
               </TableRow>
             )}
             {paginated.map((user) => (
