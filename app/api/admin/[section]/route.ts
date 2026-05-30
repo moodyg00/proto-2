@@ -1,10 +1,29 @@
 import { NextResponse } from 'next/server';
 
-import { isAdminCreateSection, type AdminCreateSection } from '@/src/lib/admin-record-form-config';
+import { isAdminCreateSection, isAdminDbSection, type AdminCreateSection } from '@/src/lib/admin-record-form-config';
 
 type RouteParams = {
   section: string;
 };
+
+export async function GET(_request: Request, { params }: { params: Promise<RouteParams> }) {
+  const { section } = await params;
+
+  if (!isAdminDbSection(section)) {
+    return NextResponse.json({ error: 'Unsupported admin section.' }, { status: 404 });
+  }
+
+  try {
+    const { listAdminRecords } = await import('@/src/lib/admin-record-operations');
+    const records = await listAdminRecords(section);
+    return NextResponse.json({ records }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unable to load records.' },
+      { status: 500 },
+    );
+  }
+}
 
 export async function POST(request: Request, { params }: { params: Promise<RouteParams> }) {
   const { section } = await params;

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 
 import { SingleRecordViewPage } from '@/src/components/admin/SingleRecordViewPage';
+import { isAdminDbSection } from '@/src/lib/admin-record-form-config';
 import {
   ADS_CONFIG,
   BANK_ACCOUNTS_CONFIG,
@@ -22,22 +23,6 @@ type PageParams = {
   id: string;
 };
 
-const RECORD_INDEX_CONFIG_BY_SECTION = {
-  ads: ADS_CONFIG,
-  'bank-accounts': BANK_ACCOUNTS_CONFIG,
-  'bank-cards': BANK_CARDS_CONFIG,
-  campaigns: CAMPAIGNS_CONFIG,
-  catalog: CATALOG_CONFIG,
-  'chart-of-accounts': CHART_OF_ACCOUNTS_CONFIG,
-  contacts: CONTACTS_CONFIG,
-  estimates: ESTIMATES_CONFIG,
-  invoices: INVOICES_CONFIG,
-  'work-orders': WORK_ORDERS_CONFIG,
-  leads: LEADS_CONFIG,
-  offerings: OFFERINGS_CONFIG,
-  organizations: ORGANIZATIONS_CONFIG,
-} as const;
-
 const SECTION_TITLES = {
   ads: ADS_CONFIG.title,
   'bank-accounts': BANK_ACCOUNTS_CONFIG.title,
@@ -54,14 +39,6 @@ const SECTION_TITLES = {
   organizations: ORGANIZATIONS_CONFIG.title,
   'work-orders': WORK_ORDERS_CONFIG.title,
 } as const;
-
-const BILL_RECORDS = [
-  { id: 'bill_001', vendor: 'Allied Supply', description: 'Copper fittings and valves', dueDate: '2026-06-03', amount: 4280, status: 'pending' },
-  { id: 'bill_002', vendor: 'Metro Logistics', description: 'Fleet service and toll pass', dueDate: '2026-05-30', amount: 920, status: 'paid' },
-  { id: 'bill_003', vendor: 'North Electric', description: 'Panel components batch', dueDate: '2026-05-25', amount: 3180, status: 'overdue' },
-  { id: 'bill_004', vendor: 'Studio Print Co', description: 'Campaign print collateral', dueDate: '2026-06-08', amount: 640, status: 'draft' },
-  { id: 'bill_005', vendor: 'Twilio', description: 'SMS and call routing usage', dueDate: '2026-06-01', amount: 380, status: 'pending' },
-] as const;
 
 const USER_RECORDS = [
   { id: 'usr_001', name: 'Jordan Diaz', email: 'jordan@proto2.app', role: 'admin', status: 'active', lastSeen: '2m ago' },
@@ -84,69 +61,26 @@ const TRANSACTION_RECORDS = [
 
 const TABLE_RECORDS_BY_SECTION = {
   'bank-transactions': { title: 'Bank Transactions', records: TRANSACTION_RECORDS },
-  bills: { title: 'Bills', records: BILL_RECORDS },
   users: { title: 'Users', records: USER_RECORDS },
 } as const;
-
-function toSchemaRecord(record: {
-  id: string;
-  name: string;
-  subtitle: string;
-  category: string;
-  metric?: string;
-  accent?: string;
-  badge?: { label: string; variant?: string };
-  tags?: string[];
-  meta: Array<{ label: string; value: string }>;
-}) {
-  return {
-    id: record.id,
-    name: record.name,
-    subtitle: record.subtitle,
-    category: record.category,
-    metric: record.metric ?? null,
-    accent: record.accent ?? null,
-    badge: record.badge ?? null,
-    tags: record.tags ?? [],
-    meta: record.meta.reduce<Record<string, string>>((acc, item) => {
-      acc[item.label] = item.value;
-      return acc;
-    }, {}),
-  };
-}
 
 export default async function Page({ params }: { params: Promise<PageParams> }) {
   const { id, section } = await params;
 
-  if (Object.prototype.hasOwnProperty.call(SECTION_TITLES, section)) {
+  if (isAdminDbSection(section)) {
     const { getAdminRecordDetail } = await import('@/src/lib/admin-record-operations');
     const dbRecord = await getAdminRecordDetail(section, id);
-    if (dbRecord) {
-      const sectionTitle = SECTION_TITLES[section as keyof typeof SECTION_TITLES] ?? section;
-
-      return (
-        <SingleRecordViewPage
-          sectionTitle={sectionTitle}
-          recordTitle={dbRecord.title}
-          recordId={id}
-          record={dbRecord.record}
-          backHref={`/admin/${section}`}
-        />
-      );
+    if (!dbRecord) {
+      notFound();
     }
-  }
-
-  const recordIndexConfig = RECORD_INDEX_CONFIG_BY_SECTION[section as keyof typeof RECORD_INDEX_CONFIG_BY_SECTION];
-  if (recordIndexConfig) {
-    const record = recordIndexConfig.records.find((entry) => entry.id === id);
-    if (!record) notFound();
+    const sectionTitle = SECTION_TITLES[section as keyof typeof SECTION_TITLES] ?? section;
 
     return (
       <SingleRecordViewPage
-        sectionTitle={recordIndexConfig.title}
-        recordTitle={record.name}
-        recordId={record.id}
-        record={toSchemaRecord(record)}
+        sectionTitle={sectionTitle}
+        recordTitle={dbRecord.title}
+        recordId={id}
+        record={dbRecord.record}
         backHref={`/admin/${section}`}
       />
     );
@@ -160,7 +94,7 @@ export default async function Page({ params }: { params: Promise<PageParams> }) 
     return (
       <SingleRecordViewPage
         sectionTitle={tableSection.title}
-        recordTitle={'name' in record ? String(record.name) : String(record.id)}
+        recordTitle={String((record as { name?: unknown }).name ?? record.id)}
         recordId={String(record.id)}
         record={record as unknown as Record<string, unknown>}
         backHref={`/admin/${section}`}

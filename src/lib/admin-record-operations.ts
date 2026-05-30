@@ -1,6 +1,21 @@
 import { prisma } from '@/src/lib/prisma';
 
-import { isAdminCreateSection, type AdminCreateSection } from '@/src/lib/admin-record-form-config';
+import { isAdminDbSection, type AdminCreateSection, type AdminDbSection } from '@/src/lib/admin-record-form-config';
+
+type BadgeVariant = 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'info' | 'error' | 'destructive';
+
+type AdminListItem = {
+  id: string;
+  name: string;
+  subtitle: string;
+  category: string;
+  metric?: string;
+  badge?: {
+    label: string;
+    variant?: BadgeVariant;
+  };
+  meta: Array<{ label: string; value: string }>;
+};
 
 type RecordResult = {
   title: string;
@@ -110,8 +125,195 @@ function fieldValue(values: Record<string, unknown>, key: string) {
   return values[key];
 }
 
+function toCurrencyMetric(value: unknown) {
+  if (value === null || value === undefined) return undefined;
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return undefined;
+  return `$${numeric.toLocaleString()}`;
+}
+
+function toListMeta(entries: Array<{ label: string; value: string | undefined }>) {
+  return entries
+    .filter((entry) => entry.value && entry.value.trim().length > 0)
+    .map((entry) => ({ label: entry.label, value: entry.value as string }));
+}
+
+export async function listAdminRecords(section: AdminDbSection): Promise<AdminListItem[]> {
+  switch (section) {
+    case 'work-orders': {
+      const records = await prisma.workOrder.findMany({ take: 200, select: { id: true, workOrderNumber: true, customerName: true, serviceName: true, status: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.workOrderNumber,
+        subtitle: record.customerName ?? 'No customer name',
+        category: record.status,
+        badge: { label: record.status, variant: 'outline' },
+        meta: toListMeta([
+          { label: 'Customer', value: record.customerName ?? undefined },
+          { label: 'Service', value: record.serviceName ?? undefined },
+        ]),
+      }));
+    }
+    case 'invoices': {
+      const records = await prisma.invoice.findMany({ take: 200, select: { id: true, invoiceNumber: true, organizationName: true, status: true, totalAmount: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.invoiceNumber,
+        subtitle: record.organizationName ?? 'No organization',
+        category: record.status,
+        metric: toCurrencyMetric(record.totalAmount),
+        badge: { label: record.status, variant: 'outline' },
+        meta: toListMeta([{ label: 'Organization', value: record.organizationName ?? undefined }]),
+      }));
+    }
+    case 'estimates': {
+      const records = await prisma.estimate.findMany({ take: 200, select: { id: true, estimateNumber: true, title: true, status: true, totalAmount: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.estimateNumber,
+        subtitle: record.title,
+        category: record.status,
+        metric: toCurrencyMetric(record.totalAmount),
+        badge: { label: record.status, variant: 'outline' },
+        meta: [],
+      }));
+    }
+    case 'contacts': {
+      const records = await prisma.contact.findMany({ take: 200, select: { id: true, name: true, email: true, status: true, type: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.name ?? record.email ?? record.id,
+        subtitle: record.email ?? 'No email',
+        category: record.type,
+        badge: { label: record.status, variant: 'outline' },
+        meta: toListMeta([
+          { label: 'Type', value: record.type },
+          { label: 'Status', value: record.status },
+        ]),
+      }));
+    }
+    case 'leads': {
+      const records = await prisma.lead.findMany({ take: 200, select: { id: true, name: true, source: true, status: true, expectedValue: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.name,
+        subtitle: record.source ?? 'No source',
+        category: record.status,
+        metric: toCurrencyMetric(record.expectedValue),
+        badge: { label: record.status, variant: 'outline' },
+        meta: toListMeta([{ label: 'Source', value: record.source ?? undefined }]),
+      }));
+    }
+    case 'organizations': {
+      const records = await prisma.organization.findMany({ take: 200, select: { id: true, name: true, relationshipType: true, status: true, industry: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.name,
+        subtitle: record.industry ?? 'No industry',
+        category: record.relationshipType,
+        badge: { label: record.status, variant: 'outline' },
+        meta: toListMeta([{ label: 'Relationship', value: record.relationshipType }]),
+      }));
+    }
+    case 'bank-accounts': {
+      const records = await prisma.bankAccount.findMany({ take: 200, select: { id: true, name: true, accountType: true, status: true, currentBalance: true, bankName: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.name,
+        subtitle: record.bankName ?? 'No bank name',
+        category: record.accountType,
+        metric: toCurrencyMetric(record.currentBalance),
+        badge: { label: record.status ?? 'unknown', variant: 'outline' },
+        meta: toListMeta([{ label: 'Type', value: record.accountType }]),
+      }));
+    }
+    case 'bank-cards': {
+      const records = await prisma.bankCard.findMany({ take: 200, select: { id: true, cardName: true, status: true, cardType: true, last4: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.cardName,
+        subtitle: record.last4 ? `**** ${record.last4}` : 'No last4',
+        category: record.cardType ?? 'other',
+        badge: { label: record.status, variant: 'outline' },
+        meta: toListMeta([{ label: 'Type', value: record.cardType ?? undefined }]),
+      }));
+    }
+    case 'catalog': {
+      const records = await prisma.product.findMany({ take: 200, select: { id: true, name: true, category: true, unitPrice: true, sku: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.name,
+        subtitle: record.sku ?? 'No SKU',
+        category: record.category,
+        metric: toCurrencyMetric(record.unitPrice),
+        meta: toListMeta([{ label: 'SKU', value: record.sku ?? undefined }]),
+      }));
+    }
+    case 'offerings': {
+      const records = await prisma.service.findMany({ take: 200, select: { id: true, name: true, category: true, suggestedPrice: true, description: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.name,
+        subtitle: record.description ?? 'No description',
+        category: record.category,
+        metric: toCurrencyMetric(record.suggestedPrice),
+        meta: [],
+      }));
+    }
+    case 'bills': {
+      const records = await prisma.bill.findMany({ take: 200, select: { id: true, billNumber: true, vendorName: true, status: true, totalAmount: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.billNumber,
+        subtitle: record.vendorName ?? 'No vendor',
+        category: record.status,
+        metric: toCurrencyMetric(record.totalAmount),
+        badge: { label: record.status, variant: 'outline' },
+        meta: toListMeta([{ label: 'Vendor', value: record.vendorName ?? undefined }]),
+      }));
+    }
+    case 'ads': {
+      const records = await prisma.ad.findMany({ take: 200, select: { id: true, name: true, platform: true, status: true, budget: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.name,
+        subtitle: record.platform,
+        category: record.platform,
+        metric: toCurrencyMetric(record.budget),
+        badge: { label: record.status, variant: 'outline' },
+        meta: toListMeta([{ label: 'Status', value: record.status }]),
+      }));
+    }
+    case 'campaigns': {
+      const records = await prisma.adCampaign.findMany({ take: 200, select: { id: true, name: true, platform: true, status: true, totalBudget: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: record.name,
+        subtitle: record.platform ?? 'No platform',
+        category: record.platform ?? 'other',
+        metric: toCurrencyMetric(record.totalBudget),
+        badge: { label: record.status, variant: 'outline' },
+        meta: toListMeta([{ label: 'Status', value: record.status }]),
+      }));
+    }
+    case 'chart-of-accounts': {
+      const records = await prisma.chartOfAccount.findMany({ take: 200, select: { id: true, code: true, name: true, type: true, isActive: true } });
+      return records.map((record) => ({
+        id: record.id,
+        name: `${record.code} • ${record.name}`,
+        subtitle: record.name,
+        category: record.type,
+        badge: { label: record.isActive ? 'active' : 'inactive', variant: 'outline' },
+        meta: toListMeta([{ label: 'Type', value: record.type }]),
+      }));
+    }
+    default:
+      return [];
+  }
+}
+
 export async function getAdminRecordDetail(section: string, id: string): Promise<RecordResult | null> {
-  if (!isAdminCreateSection(section)) {
+  if (!isAdminDbSection(section)) {
     return null;
   }
 
@@ -151,6 +353,11 @@ export async function getAdminRecordDetail(section: string, id: string): Promise
       if (!record) return null;
       return { title: record.name, record: serializeRecord(record as unknown as Record<string, unknown>) };
     }
+    case 'bank-cards': {
+      const record = await prisma.bankCard.findUnique({ where: { id } });
+      if (!record) return null;
+      return { title: record.cardName, record: serializeRecord(record as unknown as Record<string, unknown>) };
+    }
     case 'catalog': {
       const record = await prisma.product.findUnique({ where: { id } });
       if (!record) return null;
@@ -175,6 +382,11 @@ export async function getAdminRecordDetail(section: string, id: string): Promise
       const record = await prisma.adCampaign.findUnique({ where: { id } });
       if (!record) return null;
       return { title: record.name, record: serializeRecord(record as unknown as Record<string, unknown>) };
+    }
+    case 'chart-of-accounts': {
+      const record = await prisma.chartOfAccount.findUnique({ where: { id } });
+      if (!record) return null;
+      return { title: `${record.code} • ${record.name}`, record: serializeRecord(record as unknown as Record<string, unknown>) };
     }
     default:
       return null;

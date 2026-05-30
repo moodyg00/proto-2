@@ -12,6 +12,8 @@ export type AdminCreateSection =
   | 'ads'
   | 'campaigns';
 
+export type AdminDbSection = AdminCreateSection | 'bank-cards' | 'chart-of-accounts';
+
 export type AdminCreateFieldType = 'text' | 'textarea' | 'number' | 'date' | 'select' | 'checkbox';
 
 export type AdminCreateField = {
@@ -494,12 +496,18 @@ export const ADMIN_CREATE_DEFINITIONS: Record<AdminCreateSection, AdminCreateDef
 
 export const ADMIN_CREATEABLE_SECTIONS = Object.keys(ADMIN_CREATE_DEFINITIONS) as AdminCreateSection[];
 
+const ADMIN_DB_SECTIONS: AdminDbSection[] = [...ADMIN_CREATEABLE_SECTIONS, 'bank-cards', 'chart-of-accounts'];
+
 export function isAdminCreateSection(section: string): section is AdminCreateSection {
   return Object.prototype.hasOwnProperty.call(ADMIN_CREATE_DEFINITIONS, section);
 }
 
 export function getAdminCreateDefinition(section: string): AdminCreateDefinition | null {
   return isAdminCreateSection(section) ? ADMIN_CREATE_DEFINITIONS[section] : null;
+}
+
+export function isAdminDbSection(section: string): section is AdminDbSection {
+  return ADMIN_DB_SECTIONS.includes(section as AdminDbSection);
 }
 
 export function getAdminCreateHref(section: AdminCreateSection) {

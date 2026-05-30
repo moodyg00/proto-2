@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Filter, Search, SlidersHorizontal } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/src/lib/utils';
-import { getAdminCreateHref, isAdminCreateSection } from '@/src/lib/admin-record-form-config';
+import { getAdminCreateHref, isAdminCreateSection, isAdminDbSection } from '@/src/lib/admin-record-form-config';
 
 type BadgeVariant = 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'info' | 'error' | 'destructive';
 
@@ -70,16 +70,65 @@ export function RecordIndexPage({ config }: { config: RecordIndexConfig }) {
   const pathname = usePathname();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
+  const [dbRecords, setDbRecords] = useState<RecordItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const section = pathname.split('/').filter(Boolean)[1] ?? '';
   const createHref = isAdminCreateSection(section) ? getAdminCreateHref(section) : null;
+  const useDbRecords = isAdminDbSection(section);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadRecords() {
+      if (!useDbRecords) {
+        setDbRecords([]);
+        setLoadError(null);
+        return;
+      }
+
+      setLoading(true);
+      setLoadError(null);
+
+      try {
+        const response = await fetch(`/api/admin/${section}`, { cache: 'no-store' });
+        const body = (await response.json()) as { records?: RecordItem[]; error?: string };
+
+        if (!response.ok) {
+          throw new Error(body.error ?? 'Unable to load records.');
+        }
+
+        if (active) {
+          setDbRecords(Array.isArray(body.records) ? body.records : []);
+        }
+      } catch (error) {
+        if (active) {
+          setDbRecords([]);
+          setLoadError(error instanceof Error ? error.message : 'Unable to load records.');
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadRecords();
+
+    return () => {
+      active = false;
+    };
+  }, [section, useDbRecords]);
+
+  const sourceRecords = useDbRecords ? dbRecords : config.records;
 
   const filtered = useMemo(() => {
-    return config.records.filter((record) => {
+    return sourceRecords.filter((record) => {
       const matchesFilter = filter === 'all' || record.category === filter;
       const matchesQuery = query.trim().length === 0 || matchSearch(record, query);
       return matchesFilter && matchesQuery;
     });
-  }, [config.records, filter, query]);
+  }, [sourceRecords, filter, query]);
 
   return (
     <div className="space-y-6 pb-6">
@@ -172,12 +221,26 @@ export function RecordIndexPage({ config }: { config: RecordIndexConfig }) {
             </div>
           ) : null}
 
-          {filtered.length === 0 ? (
+          {loading ? (
             <div
               className="border px-5 py-10 text-center text-sm"
               style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
             >
-              {config.emptyMessage}
+              Loading records...
+            </div>
+          ) : loadError ? (
+            <div
+              className="border px-5 py-10 text-center text-sm"
+              style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+            >
+              {loadError}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div
+              className="border px-5 py-10 text-center text-sm"
+              style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+            >
+              {useDbRecords ? 'No records' : config.emptyMessage}
             </div>
           ) : (
             <div className={config.gridClassName}>
