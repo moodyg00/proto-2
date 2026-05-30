@@ -15,9 +15,12 @@ for (const envPath of envPaths) {
   }
 }
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString =
+  process.env.DATABASE_URL ?? process.env.SUPABASE_DB_URL ?? process.env.SUPABASE_POOLER_URL;
 if (!connectionString) {
-  throw new Error('DATABASE_URL is not set. Create .env.local or export DATABASE_URL first.');
+  throw new Error(
+    'No database URL is set. Create .env.local with DATABASE_URL (or SUPABASE_DB_URL / SUPABASE_POOLER_URL).'
+  );
 }
 
 const client = new Client({
