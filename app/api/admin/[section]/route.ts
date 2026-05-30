@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
 
-import { createAdminRecord } from '@/src/lib/admin-record-operations';
 import { isAdminCreateSection, type AdminCreateSection } from '@/src/lib/admin-record-form-config';
 
 type RouteParams = {
   section: string;
 };
 
-export async function POST(request: Request, { params }: { params: RouteParams }) {
-  const { section } = params;
+export async function POST(request: Request, { params }: { params: Promise<RouteParams> }) {
+  const { section } = await params;
 
   if (!isAdminCreateSection(section)) {
     return NextResponse.json({ error: 'Unsupported admin section.' }, { status: 404 });
@@ -23,6 +22,7 @@ export async function POST(request: Request, { params }: { params: RouteParams }
   }
 
   try {
+    const { createAdminRecord } = await import('@/src/lib/admin-record-operations');
     const created = await createAdminRecord(section as AdminCreateSection, body.values ?? {});
     return NextResponse.json({ recordId: String(created.record.id), recordTitle: created.title }, { status: 201 });
   } catch (error) {

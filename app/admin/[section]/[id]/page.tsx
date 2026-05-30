@@ -16,7 +16,6 @@ import {
   ORGANIZATIONS_CONFIG,
   WORK_ORDERS_CONFIG,
 } from '@/src/components/admin/record-index-config';
-import { getAdminRecordDetail } from '@/src/lib/admin-record-operations';
 
 type PageParams = {
   section: string;
@@ -119,19 +118,22 @@ function toSchemaRecord(record: {
 export default async function Page({ params }: { params: Promise<PageParams> }) {
   const { id, section } = await params;
 
-  const dbRecord = await getAdminRecordDetail(section, id);
-  if (dbRecord) {
-    const sectionTitle = SECTION_TITLES[section as keyof typeof SECTION_TITLES] ?? section;
+  if (Object.prototype.hasOwnProperty.call(SECTION_TITLES, section)) {
+    const { getAdminRecordDetail } = await import('@/src/lib/admin-record-operations');
+    const dbRecord = await getAdminRecordDetail(section, id);
+    if (dbRecord) {
+      const sectionTitle = SECTION_TITLES[section as keyof typeof SECTION_TITLES] ?? section;
 
-    return (
-      <SingleRecordViewPage
-        sectionTitle={sectionTitle}
-        recordTitle={dbRecord.title}
-        recordId={id}
-        record={dbRecord.record}
-        backHref={`/admin/${section}`}
-      />
-    );
+      return (
+        <SingleRecordViewPage
+          sectionTitle={sectionTitle}
+          recordTitle={dbRecord.title}
+          recordId={id}
+          record={dbRecord.record}
+          backHref={`/admin/${section}`}
+        />
+      );
+    }
   }
 
   const recordIndexConfig = RECORD_INDEX_CONFIG_BY_SECTION[section as keyof typeof RECORD_INDEX_CONFIG_BY_SECTION];
