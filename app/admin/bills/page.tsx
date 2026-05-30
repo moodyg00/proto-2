@@ -7,10 +7,11 @@ import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { StatusBadge } from '../../../src/components/admin/StatusBadge';
 import { Badge } from '../../../components/ui/badge';
-import { Button } from '../../../components/ui/button';
+import { Button, buttonVariants } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Input } from '../../../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
+import { cn } from '../../../src/lib/utils';
 
 type BillStatus = 'draft' | 'pending' | 'paid' | 'overdue';
 
@@ -61,6 +62,13 @@ export default function BillsPage() {
           Bills
         </div>
         <div className="flex gap-3">
+          <Link
+            aria-label="Add record"
+            href="/admin/bills/new"
+            className={cn(buttonVariants({ variant: 'outline', size: 'icon-sm' }), 'rounded-full text-lg font-semibold')}
+          >
+            +
+          </Link>
           <Button variant="secondary" onClick={() => toast('Export bills CSV (demo)')}>Export</Button>
           <Button onClick={() => toast.success('Marked selected bills for payment (demo)')}>Queue Payment</Button>
         </div>

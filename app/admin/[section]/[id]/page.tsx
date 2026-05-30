@@ -16,6 +16,7 @@ import {
   ORGANIZATIONS_CONFIG,
   WORK_ORDERS_CONFIG,
 } from '@/src/components/admin/record-index-config';
+import { getAdminRecordDetail } from '@/src/lib/admin-record-operations';
 
 type PageParams = {
   section: string;
@@ -36,6 +37,23 @@ const RECORD_INDEX_CONFIG_BY_SECTION = {
   leads: LEADS_CONFIG,
   offerings: OFFERINGS_CONFIG,
   organizations: ORGANIZATIONS_CONFIG,
+} as const;
+
+const SECTION_TITLES = {
+  ads: ADS_CONFIG.title,
+  'bank-accounts': BANK_ACCOUNTS_CONFIG.title,
+  'bank-cards': BANK_CARDS_CONFIG.title,
+  campaigns: CAMPAIGNS_CONFIG.title,
+  catalog: CATALOG_CONFIG.title,
+  'chart-of-accounts': CHART_OF_ACCOUNTS_CONFIG.title,
+  contacts: CONTACTS_CONFIG.title,
+  bills: 'Bills',
+  estimates: ESTIMATES_CONFIG.title,
+  invoices: INVOICES_CONFIG.title,
+  leads: LEADS_CONFIG.title,
+  offerings: OFFERINGS_CONFIG.title,
+  organizations: ORGANIZATIONS_CONFIG.title,
+  'work-orders': WORK_ORDERS_CONFIG.title,
 } as const;
 
 const BILL_RECORDS = [
@@ -100,6 +118,21 @@ function toSchemaRecord(record: {
 
 export default async function Page({ params }: { params: Promise<PageParams> }) {
   const { id, section } = await params;
+
+  const dbRecord = await getAdminRecordDetail(section, id);
+  if (dbRecord) {
+    const sectionTitle = SECTION_TITLES[section as keyof typeof SECTION_TITLES] ?? section;
+
+    return (
+      <SingleRecordViewPage
+        sectionTitle={sectionTitle}
+        recordTitle={dbRecord.title}
+        recordId={id}
+        record={dbRecord.record}
+        backHref={`/admin/${section}`}
+      />
+    );
+  }
 
   const recordIndexConfig = RECORD_INDEX_CONFIG_BY_SECTION[section as keyof typeof RECORD_INDEX_CONFIG_BY_SECTION];
   if (recordIndexConfig) {

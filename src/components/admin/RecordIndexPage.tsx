@@ -6,7 +6,10 @@ import React, { useMemo, useState } from 'react';
 import { Filter, Search, SlidersHorizontal } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/src/lib/utils';
+import { getAdminCreateHref, isAdminCreateSection } from '@/src/lib/admin-record-form-config';
 
 type BadgeVariant = 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'info' | 'error' | 'destructive';
 
@@ -67,6 +70,8 @@ export function RecordIndexPage({ config }: { config: RecordIndexConfig }) {
   const pathname = usePathname();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
+  const section = pathname.split('/').filter(Boolean)[1] ?? '';
+  const createHref = isAdminCreateSection(section) ? getAdminCreateHref(section) : null;
 
   const filtered = useMemo(() => {
     return config.records.filter((record) => {
@@ -95,14 +100,25 @@ export function RecordIndexPage({ config }: { config: RecordIndexConfig }) {
             {config.title}
           </span>
         </div>
-        <span className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em]" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
-          {filtered.length} visible
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em]" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
+            {filtered.length} visible
+          </span>
+          {createHref && config.hideToolbar ? (
+            <Link
+              aria-label="Add record"
+              href={createHref}
+              className={cn(buttonVariants({ variant: 'outline', size: 'icon-sm' }), 'rounded-full text-lg font-semibold')}
+            >
+              +
+            </Link>
+          ) : null}
+        </div>
       </header>
 
       <div className="space-y-5">
           {!config.hideToolbar ? (
-            <div className="grid gap-3 lg:grid-cols-[1fr_240px]">
+            <div className="grid gap-3 lg:grid-cols-[1fr_240px_auto]">
               <label className="space-y-2">
                 <span className="text-xs font-medium uppercase tracking-[0.18em]" style={{ color: 'var(--muted-foreground)' }}>
                   Search
@@ -142,6 +158,17 @@ export function RecordIndexPage({ config }: { config: RecordIndexConfig }) {
                   </select>
                 </div>
               </label>
+              {createHref ? (
+                <div className="flex items-end">
+                  <Link
+                    aria-label="Add record"
+                    href={createHref}
+                    className={cn(buttonVariants({ variant: 'outline', size: 'icon-sm' }), 'rounded-full text-lg font-semibold')}
+                  >
+                    +
+                  </Link>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
